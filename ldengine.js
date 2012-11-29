@@ -1,14 +1,14 @@
 function Logger() {
 }
-Logger.prototype.isEnabled = function() {
-	return false;
+Logger.prototype.isDebugEnabled = function() {
+	return true;
 }
-Logger.prototype.log = function( message ) {
-	if( this.isEnabled() )
+Logger.prototype.debug = function( message ) {
+	if( this.isDebugEnabled() )
 	{
 		var time = new Date();
 		setTimeout( function() {
-			console.log( '*** ' + time.getTime() + ' : ' + message );
+			console.log( '*** ldengine.js: ' + time.getTime() + ': ' + message );
 		}, 0 );
 	}
 }
@@ -16,6 +16,7 @@ var log = new Logger();
 
 // Bootstrap
 $(function() {
+	if( log.isDebugEnabled()) log.debug( 'Starting Bootstrap Function' );
 
 	var checkForSidebarTimer = null;
 	var checkForAdsTimer = null;
@@ -27,6 +28,7 @@ $(function() {
 
 	// Start monitoring changes to browser history
 	$(window).bind("popstate", function(event) {
+		if( log.isDebugEnabled()) log.debug( 'Window popstate' );
 		// On popstate, try to initialize the sidebar again
 		if(window.location.hash.match(/#inbox\/\S+/)) {
 			waitUntil(LDEngine.sidebar.isReadyToBeAppended, LDEngine.sidebar.init, 25);
@@ -38,6 +40,7 @@ $(function() {
 	// settings with our other startup requests
 
 	function getSettings() {
+		if( log.isDebugEnabled()) log.debug( 'getSettings()' );
 		var getApiURLDeferredObj = $.Deferred();
 		chrome.storage.local.get('ldengine_api_url', function(items) {
 
@@ -101,11 +104,16 @@ var messageScrapeAlarm;
  */
 
 function waitUntil(test, action, tryInterval, sharedTimer, eachTime) {
+	if( log.isDebugEnabled()) log.debug( 'Wait until: ' + test.toString() );
 	var timer = setInterval(function() {
 		typeof eachTime === "function" && eachTime();
 		if(test()) {
 			clearInterval(timer);
 			sharedTimer && clearInterval(sharedTimer);
+			if( log.isDebugEnabled()) {
+				log.debug( 'Condition met: ' + test.toString() );
+				log.debug( 'Performing action: ' + action.toString() );
+			}
 			action();
 		}
 	}, tryInterval || 50);
@@ -134,6 +142,7 @@ var Gmail = {
 
 		// Scrape the message data from the DOM
 		scrape: function($el, callback) {
+			if( log.isDebugEnabled()) log.debug( 'Scraping message data from DOM' );
 
 			var thisMessageIsReadyToScrape = _.bind(Gmail.message.isReadyToScrape, this, $el);
 
@@ -148,7 +157,7 @@ var Gmail = {
 				});
 
 				// Return api-ready object
-				callback(null, {
+				var messageData = {
 					Message: {
 						subject: $('.hP').text(),
 						body: $el.find(Gmail.selectors.message.body).text().replace(/\n/g, ' '),
@@ -157,14 +166,18 @@ var Gmail = {
 						to: recipientEmails
 						// TODO: cc, bcc
 					}
-				});
+				};
+				if( log.isDebugEnabled()) log.debug( 'Message data scraped: ' + JSON.stringify( messageData ));
+				callback(null, messageData );
 
 			});
 		},
 
 		// Returns whether the *expanded* message is finished loading (and is therefore scrape-able)
 		isReadyToScrape: function($el) {
-			return $el.find(Gmail.selectors.message.body).length;
+			var ready = $el.find(Gmail.selectors.message.body).length;
+			if( log.isDebugEnabled() ) log.debug( 'isReadyToScrape?: ' + ready );
+			return ready;
 		},
 
 		// Triggered when a message container is clicked
@@ -172,6 +185,10 @@ var Gmail = {
 			var isThisMessageReadyToScrape = _.bind(Gmail.message.isReadyToScrape, this, $el);
 
 			// TODO: call scrape()
+			if( log.isDebugEnabled() ) {
+				log.debug( 'Message Container Clicked, isThisMessageReadyToScrape?: ' + isThisMessageReadyToScrape );
+				log.debug( 'TODO: "call scrape()"' );
+			}
 		},
 
 		// Bind a click event to each message
@@ -183,6 +200,7 @@ var Gmail = {
 		post: function(messageApiObj, callback) {
 
 			// Post the message to the server and get related snippets
+			if( log.isDebugEnabled() ) log.debug( 'Posting message back to ' + API_URL + "/message/relatedSnippets" );
 			$.ajax(API_URL + "/message/relatedSnippets", {
 				type: 'POST',
 				data: messageApiObj,
@@ -206,10 +224,13 @@ var LDEngine = {
 
 		// Returns whether the sidebar can be appended safely
 		isReadyToBeAppended: function() {
-			return templatesReady && $(Gmail.selectors.sidebar).length;
+			var isReady = templatesReady && $(Gmail.selectors.sidebar).length;
+			if( log.isDebugEnabled() ) log.debug( 'LdEngine.sidebar.isReadyToBeAppended? ' + isReady );
+			return isReady;
 		},
 
 		init: function() {
+			if( log.isDebugEnabled() ) log.debug( 'LdEngine.sidebar.init()' );
 
 			// Scrape email address to send to server to verify identity
 			var emailString = $(".msg").text();
@@ -221,26 +242,34 @@ var LDEngine = {
 
 			// start timer that will fire if we do not get response back in time when checking the
 			// account status.
+			if( log.isDebugEnabled() ) log.debug( 'Setting "no response" timer for 10 sec.' );
 			var noResponse = setTimeout(function() {
+					if( log.isDebugEnabled() ) log.debug( '"no response" timer fired!' );
 					LDEngine.sidebar.stopLoadingSpinner();
 					LDEngine.sidebar.appendNoResponse();
 				}, 10000);
 
+			if( log.isDebugEnabled() ) log.debug( 'Getting account status from: ' + API_URL + "/account/status for email string: " + emailString );
 			$.get(API_URL + "/account/status", {
 				email: emailString
 			},function(data) {
+				if( log.isDebugEnabled() ) log.debug( 'Account status returned: ' + JSON.stringify( data ));
 
 				// if server has responded then we kill the functions waiting for the timer to end
+
+				if( log.isDebugEnabled() ) log.debug( 'Clearing no response timer.' );
 				clearTimeout(noResponse);
 				
 				LDEngine.sidebar.accountStatus = data;
 
 				// Render the appropriate UI depending if you have the data
 				if (LDEngine.sidebar.accountStatus.status !== 'linked') {
+					if( log.isDebugEnabled() ) log.debug( 'Rendering Linked UI' );
 					LDEngine.sidebar.append();
 					$.link.unauthTemplate($('.lde-unauthenticated'), LDEngine.sidebar.accountStatus.AuthUrl);
 					LDEngine.sidebar.stopLoadingSpinner();
 				} else {
+					if( log.isDebugEnabled() ) log.debug( 'Rendering default UI' );
 					LDEngine.sidebar.renderUI();
 				}
 
@@ -252,11 +281,12 @@ var LDEngine = {
 		setSidebarHeight: function(selector) {
 			var sidebarHeight = $(window).height() - $('.nH.w-asV.aiw').outerHeight(true) -
 													$('.aeH').height() - $('Bs.nH.iY').height();
-
+			if( log.isDebugEnabled() ) log.debug( 'Setting sidebar height to: ' + sidebarHeight );													
 			$(selector).height(sidebarHeight);
 		},
 
 		renderUI: function() {
+			if( log.isDebugEnabled() ) log.debug( 'Starting to Render UI.' );
 
 			// Draw empty sidebar
 			this.append();
@@ -295,15 +325,19 @@ var LDEngine = {
 					});
 
 					// dont show the ajax spinner anymore
+					if( log.isDebugEnabled() ) log.debug( 'Stop the loading spinner.' );
 					LDEngine.sidebar.stopLoadingSpinner();
 
 					// render the sender info
+					if( log.isDebugEnabled() ) log.debug( 'Render senderInfo' );
 					LDEngine.sidebar.senderInfo.render();
 
 					// render the progressbar
+					if( log.isDebugEnabled() ) log.debug( 'Render progress bar' );
 					LDEngine.sidebar.progressBar.render();
 
 					// Render the message snippets returned from the server
+					if( log.isDebugEnabled() ) log.debug( 'Render message snippets' );
 					LDEngine.sidebar.renderSnippets(messageSnippets);
 
 					// fixed to prevent Google from capturing out scroll event
@@ -314,15 +348,18 @@ var LDEngine = {
 
 				});
 			});
-
 			
 
 			// Listen for clicks on all messages
 			Gmail.message.bindClick();
+
+			if( log.isDebugEnabled() ) log.debug( 'Done Rendering UI.' );
+
 		},
 
 		// Append sidebar to appropriate place in DOM
 		append: function() {
+			if( log.isDebugEnabled() ) log.debug( 'LDEngine.sidebar.append()' );
 
 			// Kill the container if it exists
 			if($('#ldengine').length) {
@@ -341,6 +378,8 @@ var LDEngine = {
 		// Append loading spinner to sidebar, right now the process of checking login
 		// is taking the longest in the beginning.
 		appendLoadingSpinner: function() {
+			if( log.isDebugEnabled() ) log.debug( 'LDEngine.sidebar.appendLoadingSpinner()' );
+
 			$('td.Bu.y3').css({
 				'position': 'relative'
 			});
@@ -352,14 +391,17 @@ var LDEngine = {
 		// We have this in its own method so it can be called anywhere we need it and dont
 		// need to check conditions in appendLoadingSpinner.
 		stopLoadingSpinner: function() {
+			if( log.isDebugEnabled() ) log.debug( 'LDEngine.sidebar.stopLoadingSpinner()' );
 			$('.lde-ajax-spinner').hide();
 		},
 
 		appendNoResponse: function() {
+			if( log.isDebugEnabled() ) log.debug( 'LDEngine.sidebar.appendNoResponse()' );
 			$('.Bu.y3').append('<div class="lde-no-response">Sorry, there was no response. Refresh to try again.</div>');
 		},
 
 		renderSnippets: function(messageSnippets) {
+			if( log.isDebugEnabled() ) log.debug( 'LDEngine.sidebar.renderSnippets()' );
 
 			// Remove any Gmail stuff that's popped up
 			$(Gmail.selectors.sidebar).find(Gmail.selectors.userbar).remove();
@@ -385,6 +427,7 @@ var LDEngine = {
 
 		//  Clicking on the snippet calls fetch
 		clickSnippet: function(e) {
+			if( log.isDebugEnabled() ) log.debug( 'LDEngine.sidebar.clickSnippet()' );
 
 			var id = $(e.currentTarget).attr('data-id');
 
@@ -397,11 +440,13 @@ var LDEngine = {
 			// Renders the progress bar in to the sidebar and keeps it updated until the
 			// entire inbox has been indexed.
 			render: function() {
+				if( log.isDebugEnabled() ) log.debug( 'LDEngine.sidebar.progressBar.render()' );
 
 				var percentIndexed = LDEngine.sidebar.accountStatus.percentIndexed;
 
 				// Dont even render if we already have everything indexed
 				if (percentIndexed === 100) {
+					if( log.isDebugEnabled() ) log.debug( '100% Indexed, hiding progress bar.' );
 					LDEngine.sidebar.progressBar.hide();
 					return;
 				}
@@ -411,6 +456,7 @@ var LDEngine = {
 
 				// updates UI based on new percentIndex every loop
 				$.link.progressbarTemplate('.lde-progress-bar');
+				if( log.isDebugEnabled() ) log.debug( 'Setting progress bar % to ' + percentIndexed );
 				$('.lde-progress-status').css({
 					width: percentIndexed + '%'
 				});
@@ -418,6 +464,7 @@ var LDEngine = {
 			},
 
 			hide: function() {
+				if( log.isDebugEnabled() ) log.debug( 'LDEngine.sidebar.progressBar.hide()' );
 				$('.lde-progress-bar').fadeOut(2500, 'linear');
 			}
 		},
@@ -426,6 +473,7 @@ var LDEngine = {
 
 			// Render the sender info.
 			render: function() {
+				if( log.isDebugEnabled() ) log.debug( 'LDEngine.sidebar.senderInfo.render()' );
 
 				var senderInfo = {
 					user: {
@@ -449,6 +497,7 @@ var LDEngine = {
 
 		// Gets the message details from the server
 		fetch: function(id) {
+			if( log.isDebugEnabled() ) log.debug( 'LDEngine.sidebar.popup.fetch()' );
 
 			// Display empty popup, clear model, and abort pending xhr request if necessary
 			LDEngine.popup.model = null;
@@ -472,6 +521,7 @@ var LDEngine = {
 
 		// Display the popup
 		display: function() {
+			if( log.isDebugEnabled() ) log.debug( 'LDEngine.sidebar.popup.display()' );
 
 			// Draw the veil.
 			LDEngine.popup.maskMessageArea(true);
@@ -506,7 +556,7 @@ var LDEngine = {
 
 		// Close the popup and hide the veil
 		close: function() {
-
+			if( log.isDebugEnabled() ) log.debug( 'LDEngine.sidebar.popup.close()' );
 
 			$('#lde-popup').detach();
 
@@ -516,6 +566,7 @@ var LDEngine = {
 		},
 
 		maskMessageArea: function(mask) {
+			if( log.isDebugEnabled() ) log.debug( 'LDEngine.sidebar.popup.maskMessageArea( ' + JSON.stringify( mask ) + ' )' );
 
 			$('#lde-msg-mask').detach();
 			// If we just want to remove the mask, we're done
