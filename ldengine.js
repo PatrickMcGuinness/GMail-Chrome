@@ -22,6 +22,10 @@ var log = new Logger();
 $(function() {
 	log.debug( 'Starting Bootstrap Function' );
 
+	$( document ).ajaxError( function( event, xhr, ajaxOptions, thrownError ) {
+		log.debug( 'AJAX Error: ' + JSON.stringify( thrownError ) + ' in request ' + JSON.stringify( ajaxOptions ));
+	});
+
 	var checkForSidebarTimer = null;
 	var checkForAdsTimer = null;
 	var checkMessageLoadedTimer = null;
