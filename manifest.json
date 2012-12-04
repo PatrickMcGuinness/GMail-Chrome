@@ -1,6 +1,6 @@
 {
   "name": "LD Engine",
-  "version": "0.5",
+  "version": "0.7",
   "description": "Imagine a world where you didn't hate your email.",
   "permissions": [
   ],
@@ -23,6 +23,7 @@
     "http://198.101.252.118:3000/",
     "http://127.0.0.1:3000/",
     "http://198.101.252.118:3001/",
+    "http://sailsjs.com:1339/",
     "storage"
   ],
   "web_accessible_resources": [
