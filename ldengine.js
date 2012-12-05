@@ -53,7 +53,7 @@ $(function() {
 		chrome.storage.local.get('ldengine_api_url', function(items) {
 
 			// If there's nothing in there, default to the default production version.
-			API_URL = items.ldengine_api_url || "https://apps.ldengine.com/";
+			API_URL = items.ldengine_api_url || "https://apps.ldengine.com";
 
 			// If there's no protocol specified, use https by default.
 			if( API_URL.indexOf( "http" ) < 0 )
