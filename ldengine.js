@@ -52,10 +52,13 @@ $(function() {
 		var getApiURLDeferredObj = $.Deferred();
 		chrome.storage.local.get('ldengine_api_url', function(items) {
 
-			// For now, to avoid any weird issues w/ people who already installed
-			// the existing version, hard-code the production host
-			// API_URL = "apps.ldengine.com";
+			// If there's nothing in there, default to the default production version.
 			API_URL = items.ldengine_api_url || "https://apps.ldengine.com";
+
+			// If there's no protocol specified, use https by default.
+			if( API_URL.indexOf( "http" ) < 0 )
+				API_URL = "https://" + API_URL;
+
 			getApiURLDeferredObj.resolve();
 		});
 		return getApiURLDeferredObj.promise();
@@ -268,7 +271,7 @@ var LDEngine = {
 				email: emailString
 			},function(data) {
 				log.ifDebugEnabled( function() {
-					log.debug( 'Account status returned: ' + JSON.stringify( data ));
+					log.debug( 'Account status returned: ' + data );
 				} );
 
 				// if server has responded then we kill the functions waiting for the timer to end
