@@ -327,6 +327,10 @@ var LDEngine = {
 
 					// Marshal data from server
 
+					// render the progressbar
+					log.debug( 'Render progress bar' );
+					LDEngine.sidebar.progressBar.render();
+
 					// If no snippets are returned, render the noSnippets view and stop the ajax spinner.
 					if (messageSnippets.length === 0) {
 							$.link.noSnippetsTemplate('.lde-noSnippets');
@@ -350,10 +354,6 @@ var LDEngine = {
 					// render the sender info
 					log.debug( 'Render senderInfo' );
 					LDEngine.sidebar.senderInfo.render();
-
-					// render the progressbar
-					log.debug( 'Render progress bar' );
-					LDEngine.sidebar.progressBar.render();
 
 					// Render the message snippets returned from the server
 					log.debug( 'Render message snippets' );
