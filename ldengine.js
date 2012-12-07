@@ -40,7 +40,7 @@ $(function() {
 		// On popstate, try to initialize the sidebar again
 		if(window.location.hash.match(/#inbox\/\S+/)) {
 			waitUntil(LDEngine.sidebar.isReadyToBeAppended, LDEngine.sidebar.init, 25);
-		}
+		} 
 	});
 
 	// Create a deferred object to wrap around a call to Chrome's
@@ -246,6 +246,13 @@ var LDEngine = {
 			return isReady;
 		},
 
+		hide: function () {
+			$("#ldengine").fadeOut();
+		},
+		show: function () {
+			$("#ldengine").fadeIn();
+		},
+
 		init: function() {
 			log.debug( 'LdEngine.sidebar.init()' );
 
@@ -309,7 +316,6 @@ var LDEngine = {
 
 			// Draw empty sidebar
 			this.append();
-
 			
 			// If your'e not logged in:
 			// TODO: If you're logged in, do all this:
@@ -351,6 +357,8 @@ var LDEngine = {
 					log.debug( 'Stop the loading spinner.' );
 					LDEngine.sidebar.stopLoadingSpinner();
 
+					
+
 					// render the sender info
 					log.debug( 'Render senderInfo' );
 					LDEngine.sidebar.senderInfo.render();
@@ -378,20 +386,43 @@ var LDEngine = {
 
 		// Append sidebar to appropriate place in DOM
 		append: function() {
+
 			log.debug( 'LDEngine.sidebar.append()' );
 
 			// Kill the container if it exists
 			if($('#ldengine').length) {
-				$('#ldengine').detach();
+				log.debug("SIDEBAR ALREADY EXISTS, detaching...");
+				$('#ldengine').remove();
 			}
+			// Kill subcontainer if it exists
+			if($(".lde-related-emails").length) {
+				log.debug("lde-related-emails already exist, detaching...");
+				$(".lde-related-emails").remove();
+			}
+			else {
+				log.debug("lDE emails don't already exist. after all.");
+			}
+
+			// Stop watching for missing content
+			LDEngine.watchTimer = LDEngine.watchTimer && window.clearInterval(LDEngine.watchTimer);
+
+			// Start watching for missing content
+			LDEngine.watchTimer = window.setInterval(LDEngine.sidebar.reattachIfNecessary,100);
+
 			// Create the container
-			var block = $('<div id="ldengine"></div>');
+			var container = $('#ldengine');
+			if (!container.length) container = $('<div id="ldengine"></div>');
+
 			LDEngine.sidebar.setSidebarHeight('#ldengine');
-			$('.adC').prepend(block);
+			$('.adC').prepend(container);
 
 			// No data, just a cheap way to render the html template
 			$.link.ldengineTemplate('#ldengine');
+		},
 
+
+		reattachIfNecessary: function ( ) {
+			// console.log("RRRR");
 		},
 
 		// Append loading spinner to sidebar, right now the process of checking login
@@ -428,6 +459,19 @@ var LDEngine = {
 			// Add the related emails to the sidebar
 			$.link.sidebarTemplate(".lde-related-emails", messageSnippets);
 
+
+			if (!$('.lde-related-emails').length) {
+				LDEngine.sidebar.append();
+			}
+			else {
+			
+			console.log("\n\n\n");
+			console.log("******************************");
+			console.log($(".lde-related-emails"));
+			console.log("******************************");
+			console.log("\n\n\n");
+			}
+
 			// Ellipsize the related email snippets
 			$('.lde-email-result').dotdotdot();
 
@@ -435,7 +479,7 @@ var LDEngine = {
 			for(var i = 0; i < messageSnippets.length; i++) {
 				var messageSnippet = $($('.lde-email-result')[i]);
 				messageSnippet.attr('data-id', messageSnippets[i].id);
-				messageSnippet.click(LDEngine.sidebar.clickSnippet);
+				messageSnippet.hover(LDEngine.sidebar.selectSnippet, LDEngine.sidebar.cancelSelectSnippet);
 
 				
 				// Replace \n's with <br>'s
@@ -445,13 +489,25 @@ var LDEngine = {
 		},
 
 		//  Clicking on the snippet calls fetch
-		clickSnippet: function(e) {
-			log.debug( 'LDEngine.sidebar.clickSnippet()' );
+		selectSnippet: function(e) {
+			log.debug( 'LDEngine.sidebar.selectSnippet()' );
 
 			var id = $(e.currentTarget).attr('data-id');
 
 			// Fetch contents of popup
 			LDEngine.popup.fetch(id);
+		},
+
+		// Cancel the fetch
+		cancelSelectSnippet: function(e) {
+
+			var id = $(e.currentTarget).attr('data-id');
+
+			// Cancel pending xhr
+			if(LDEngine.popup.xhr) {
+				LDEngine.popup.xhr.abort();
+			}
+			LDEngine.popup.close();
 		},
 
 		progressBar: {
@@ -603,3 +659,14 @@ var LDEngine = {
 
 // Bind objects so we can use *this*
 _.bindAll(LDEngine.sidebar);
+
+
+
+// Watch for resize events and hide or show the sidebar accordingly
+$(function () {
+	$(window).bind('resize',_.throttle(function () {
+		if ($(window).width() < 1140) LDEngine.sidebar.hide(150);
+		else LDEngine.sidebar.show(250);
+	},25));
+});
+
