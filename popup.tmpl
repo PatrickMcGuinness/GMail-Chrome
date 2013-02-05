@@ -1,18 +1,27 @@
 <div class='lde-ajax-spinner'></div>
 <div class='lde-popup-close-button'></div>
 <div class='lde-popup-content'>
-	<div class='lde-popup-subject'>{{>subject}}</div>
+<div class='lde-header-color'>
 	<div class='lde-popup-msg-header'>
-		<div class='lde-popup-sender-thumbnail'><img src="{{:from.thumbnailUrl}}"/></div>
+		<div class='lde-popup-sender-email'>From: </div>
 		<div class='lde-popup-sender-name'>{{>from.name}}</div>
 		<div class='lde-popup-sender-email'>{{>from.email}}</div>
-		<div class='lde-popup-date'>{{>date}}</div>
+		<div class='lde-popup-date'>{{>date}}</div></br>
+		<div class='lde-popup-recieved-email'>To: </div>
+		<div class='lde-popup-recieved-name'>{{for to}} {{>name}}  {{/for}}</div>
+		<div class='lde-popup-recieved-email'>{{for to}} {{>email}} {{/for}}</div>
 	</div>
+	<div class='lde-popup-subject'>{{>subject}}</div>
+</div>
 	<div class='lde-popup-msg-text'>{{:body}}</div>
 	<div class='lde-popup-msg-close'></div>
+	<div class='lde-popup-msg-showoriginal'><a href=''>Show Original</a></div>
 </div>
 
 <!-- <svg class="lde-popup-arrow" width="30" height="30" version="1.1" xmlns="http://www.w3.org/2000/svg">
   <polygon points="0 0, 18 16, 0 31, 0 0" stroke="transparent" fill="white"/>
   <polyline points="1 1, 18 16, 1 31" stroke="#666" fill="transparent" stroke-width="1"/>
-</svg> -->
+</svg> 
+
+<div class='lde-popup-sender-thumbnail'><img src="{{:from.thumbnailUrl}}"/></div>
+-->

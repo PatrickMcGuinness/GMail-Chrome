@@ -191,28 +191,31 @@
 	box-shadow: 0 0 7px #888;
 	width: 600px;
 	height: 350px;
-	padding: 25px;
+	padding: 12px;
+	padding-bottom: 30px;
+	padding-right: 17px;
 	border: solid 1px #999;
-	color: #666;
+	color: #222;
 	position: absolute;
 	background:white;
 	z-index: 1001;
-
+	border-radius: 10px;
 	right:285px;
 	top: 100px;
 }
 
 .lde-popup-subject {
-	font-size: 20px;
-	padding-bottom: 12px;
+	font-size: 16px;
+	font-weight: bold;
+	padding-bottom: 6px;
 	border-bottom: solid 1px #ccc;
 	margin-bottom: 10px;
 }
 
 .lde-popup-msg-header {
-	padding-top:10px;
+	padding-top:5px;
 	overflow: visible;
-	margin-bottom: 45px;
+	margin-bottom: 25px;
 }
 .lde-popup-sender-name {
 	font-size: 14px;
@@ -220,6 +223,22 @@
 	font-weight: bold;
 	float: left;
 	margin-right: 10px;
+}
+
+.lde-popup-recieved-name {
+	font-size: 14px;
+	line-height: 14px;
+	font-weight: bold;
+	float: left;
+	margin-right: 10px;
+	display: none;
+}
+
+.lde-popup-recieved-email {
+	line-height: 14px;
+	font-size: 12px;
+	float: left;
+	display: none;
 }
 
 .lde-popup-sender-email {
@@ -231,6 +250,7 @@
 .lde-popup-date {
 	font-size: 12px;
 	float: right;
+	margin-right: 40px;
 	line-height: 14px;
 }
 
@@ -239,11 +259,27 @@
 	padding-right: 2%;
 	/*padding-left: 7%;*/
 	font-size: 12px;
-	height: 200px;
+	height: 240px;
+	width: 595px;
 	overflow: auto;
 	clear: both;
 }
 
+.lde-popup-msg-showoriginal {
+	font-size: 10px;
+	position: absolute;
+	right: 10px;
+	margin: 7px;
+}
+
+.none {
+	background-color: #a4eb55;
+	width: 100%;
+	top: 0px;
+	left: 0px;
+	display: none;	
+	overflow:auto;
+}
 /**
  *  Container containing individual snippet containing the sidebar UI,
  *  namely the list of email snippets.
@@ -310,8 +346,8 @@
 	background-image:url('chrome-extension://__MSG_@@extension_id__/icon_close.gif');	
 	background-position: -1px 0;
 	position: absolute;
-	top: 24px;
-	right: 25px;
+	top: 15px;
+	right: 15px;
 	cursor: pointer;
 }
 

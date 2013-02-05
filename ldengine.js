@@ -1,5 +1,6 @@
 function Logger() {
 }
+
 // Only calls the callback if debug logging is enabled.
 Logger.prototype.ifDebugEnabled = function( callback ) {
 	chrome.storage.local.get( 'ldengine_log_level', function( items ) {
@@ -21,7 +22,7 @@ var log = new Logger();
 // Bootstrap
 $(function() {
 	log.debug( 'Starting Bootstrap Function' );
-
+	console.log(" HELLO things have changed ");	
 	$( document ).ajaxError( function( event, xhr, ajaxOptions, thrownError ) {
 		log.debug( 'AJAX Error: ' + JSON.stringify( thrownError ) + ' in request ' + JSON.stringify( ajaxOptions ));
 	});
@@ -56,6 +57,9 @@ $(function() {
 			// the existing version, hard-code the production host
 			// API_URL = "apps.ldengine.com";
 			API_URL = items.ldengine_api_url || "https://apps.ldengine.com";
+				if( API_URL.indexOf( "http" ) < 0 )
+				 API_URL = "https://" + API_URL;
+
 			getApiURLDeferredObj.resolve();
 		});
 		return getApiURLDeferredObj.promise();
@@ -165,6 +169,7 @@ var Gmail = {
 					return $(recipientEl).attr('email');
 				});
 
+				
 				// Return api-ready object
 				var messageData = {
 					Message: {
@@ -172,10 +177,12 @@ var Gmail = {
 						body: $el.find(Gmail.selectors.message.body).text().replace(/\n/g, ' '),
 						// body: $el.find(Gmail.selectors.message.body).last().text().replace(/\n/g, ' '),
 						from: $el.find('.gD').attr('email'),
-						to: recipientEmails
+						to: recipientEmails,
+						mgid: 'null',
+						thrid: 'null'
 						// TODO: cc, bcc
 					}
-				};
+				}; 
 				log.ifDebugEnabled( function() {
 					log.debug( 'Message data scraped: ' + JSON.stringify( messageData ));
 				} );
@@ -206,22 +213,92 @@ var Gmail = {
 		bindClick: function() {
 			// $('.kv,.hn,.h7').bind('click', clickMessageThread);
 		},
-
+		
 		// POST the message object to the server
 		post: function(messageApiObj, callback) {
-
+			
 			// Post the message to the server and get related snippets
 			log.ifDebugEnabled( function() {
-				log.debug( 'Posting message back to ' + API_URL + "/message/relatedSnippets" );
+				debug.log( 'Posting message back to ' + API_URL + "/message/relatedMessages" );
 			} );
 
-			$.ajax(API_URL + "/message/relatedSnippets", {
+			$.ajax(API_URL + "/message/relatedMessages", {
 				type: 'POST',
 				data: messageApiObj,
 				success: callback,
 				dataType: 'json'
 			});
 		}
+	},
+
+	constructOriginalUrl: {
+		threadId: '&th=' ,
+		userId: '&ik=',
+		urlConstruct: function(userId, threadId, callback) { //order of operations: userIdScrape, threadIdParse, urlConstruct
+			var url = 'https://mail.google.com/mail/?ui=2&view=om';	
+			url += threadId;
+			url += userId;
+			callback(url);
+		},
+		userIdScrape: function(callback) {
+			
+			var UIDarray, UIDstring, userId;
+				var xhr = new XMLHttpRequest();
+				xhr.open("GET",document.location.href , true);
+				xhr.onload = function() {
+					var response = xhr.responseText 
+					UIDarray = response.match(/\x2fmail\x2fu\x2f.*\x5b/i);
+					var UIDstring = UIDarray.join();
+					UIDstring = UIDstring.replace(/\x22/g, '');
+					UIDstring = UIDstring.split(',');
+					userId = UIDstring[2];
+					callback(userId);
+				};
+			xhr.send();
+		},
+		threadIdParse: function(callback) {
+			var currentUrl = document.location.href;
+			var threadId;
+
+			var threadArray = currentUrl.match(/inbox\x2f.*/i);
+			var threadString = threadArray.join();
+			threadString = threadString.split('\x2f');
+			threadId =threadString[1];
+			callback(threadId);
+
+		},		   //meta function
+		construct: function(callback) {
+			var self = this;
+			var UID = self.userId,
+				THID = self.threadId;
+			self.userIdScrape( function(userId) { 
+				UID += userId; 
+				self.threadIdParse( function(threadId) {
+					THID += threadId;
+					self.urlConstruct( UID,THID,function(url) {
+						callback(url);
+					} ); 
+				} );
+			} );
+		}
+	},
+	scrapeMessageId: function(url, callback) {
+		//someone smart and nitpicky could find a way to make a function for this
+		// XMLRequestwithRegex function(regex match string[], regex replace character[], regex split character[]) 
+		var MGIDarray, MGIDstring, messageId;
+		var xhr = new XMLHttpRequest();
+		xhr.open("GET",url,true);
+		xhr.onload = function() { 
+			var response = xhr.responseText;
+			MGIDarray = response.match(/message-id: <.*>/i);
+			MGIDstring = MGIDarray.join();
+			MGIDstring = MGIDstring.replace(/<|>/g,'');
+			MGIDstring = MGIDstring.split(" ");
+			MGIDstring = MGIDstring[1].split("@");
+			messageId = MGIDstring[0];
+			callback(messageId);
+		};
+		xhr.send();
 	}
 };
 
@@ -243,6 +320,14 @@ var LDEngine = {
 			return isReady;
 		},
 
+		hide: function () {
+			$("#ldengine").fadeOut();
+		},
+		show: function () {
+			$("#ldengine").fadeIn();
+		},
+
+
 		init: function() {
 			log.debug( 'LdEngine.sidebar.init()' );
 
@@ -251,13 +336,15 @@ var LDEngine = {
 			emailString = emailString.match(/Loading (.+)…/i)[1];
 			$(Gmail.selectors.sidebar).find(Gmail.selectors.userbar).remove();
 			LDEngine.sidebar.appendLoadingSpinner();
-
+			
+			
 			// Send request to server to see whether the user is logged in or not.
-
+	//QUERY CODE
 			// start timer that will fire if we do not get response back in time when checking the
 			// account status.
 			log.debug( 'Setting "no response" timer for 10 sec.' );
 			var noResponse = setTimeout(function() {
+					console.log(" NO RESPONSE FROM THE SERVER " );
 					log.debug( '"no response" timer fired!' );
 					LDEngine.sidebar.stopLoadingSpinner();
 					LDEngine.sidebar.appendNoResponse();
@@ -277,7 +364,7 @@ var LDEngine = {
 				clearTimeout(noResponse);
 				
 				LDEngine.sidebar.accountStatus = data;
-
+				console.log(" UI STATUS " + LDEngine.sidebar.accountStatus.status + " AND IS DATA EMPTY? " + jQuery.isEmptyObject(data) );
 				// Render the appropriate UI depending if you have the data
 				if (LDEngine.sidebar.accountStatus.status !== 'linked') {
 					log.debug( 'Rendering Linked UI' );
@@ -303,7 +390,7 @@ var LDEngine = {
 
 		renderUI: function() {
 			log.debug( 'Starting to Render UI.' );
-
+			
 			// Draw empty sidebar
 			this.append();
 
@@ -315,53 +402,68 @@ var LDEngine = {
 			// Get the last message element
 			$el = $(Gmail.selectors.message.container).last();
 			// log.log("name div", $el.find('gD'), "email div", $el.find('go'));
-
+			
 			// Scrape the message from the Gmail UI
 			Gmail.message.scrape($el, function(err, messageApiObj) {
+			
+			// Send the scrapped message to the server
+					//hack	
+					var currentUrl = document.location.href;
+					var threadId;
 
-				// Send the scrapped message to the server
-				Gmail.message.post(messageApiObj, function(messageSnippets, textStatus) { // afterwards
+					var threadArray = currentUrl.match(/inbox\x2f.*/i);
+					var threadString = threadArray.join();
+					threadString = threadString.split('\x2f');
+					threadId = parseInt(threadString[1], 16);
 
-					// Marshal data from server
+			//		Gmail.scrapeMessageId(url, function( messageId) {
+						
+						messageApiObj.Message.thrid = threadId;
+						
+						Gmail.message.post(messageApiObj, function(messageSnippets, textStatus) { // afterwards
 
-					// If no snippets are returned, render the noSnippets view and stop the ajax spinner.
-					if (messageSnippets.length === 0) {
-							$.link.noSnippetsTemplate('.lde-noSnippets');
+							// Marshal data from server
+							console.log(messageSnippets);
+							// render the progressbar
+							log.debug( 'Render progress bar' );
+							LDEngine.sidebar.progressBar.render();
+
+							// If no snippets are returned, render the noSnippets view and stop the ajax spinner.
+							if (messageSnippets.length === 0) {
+									$.link.noSnippetsTemplate('.lde-noSnippets');
+									LDEngine.sidebar.stopLoadingSpinner();
+									return;
+							}
+
+							_.map(messageSnippets, function(messageSnippet) {
+								return _.extend(messageSnippet, {
+									date: messageSnippet.date && new Date(messageSnippet.date).toString('MMM d yy'),
+									from: _.extend(messageSnippet.from, {
+										name: messageSnippet.from.name
+									})
+								});
+							});
+
+							// dont show the ajax spinner anymore
+							log.debug( 'Stop the loading spinner.' );
 							LDEngine.sidebar.stopLoadingSpinner();
-							return;
-					}
 
-					_.map(messageSnippets, function(messageSnippet) {
-						return _.extend(messageSnippet, {
-							date: messageSnippet.date && new Date(messageSnippet.date).toString('MMM d'),
-							from: _.extend(messageSnippet.from, {
-								name: messageSnippet.from.name
-							})
-						});
-					});
+							// render the sender info
+							log.debug( 'Render senderInfo' );
+							LDEngine.sidebar.senderInfo.render();
 
-					// dont show the ajax spinner anymore
-					log.debug( 'Stop the loading spinner.' );
-					LDEngine.sidebar.stopLoadingSpinner();
+							// Render the message snippets returned from the server
+							log.debug( 'Render message snippets' );
+							LDEngine.sidebar.renderSnippets(messageSnippets);
 
-					// render the sender info
-					log.debug( 'Render senderInfo' );
-					LDEngine.sidebar.senderInfo.render();
+							// fixed to prevent Google from capturing out scroll event
+							$('.lde-related-emails').bind('mousewheel', function(e, delta) {
+								e.stopPropagation();
+								e.stopImmediatePropagation();
+							});
 
-					// render the progressbar
-					log.debug( 'Render progress bar' );
-					LDEngine.sidebar.progressBar.render();
-
-					// Render the message snippets returned from the server
-					log.debug( 'Render message snippets' );
-					LDEngine.sidebar.renderSnippets(messageSnippets);
-
-					// fixed to prevent Google from capturing out scroll event
-					$('.lde-related-emails').bind('mousewheel', function(e, delta) {
-						e.stopPropagation();
-						e.stopImmediatePropagation();
-					});
-
+				//		});			
+				//	});
 				});
 			});
 			
@@ -375,20 +477,38 @@ var LDEngine = {
 
 		// Append sidebar to appropriate place in DOM
 		append: function() {
+
 			log.debug( 'LDEngine.sidebar.append()' );
 
 			// Kill the container if it exists
 			if($('#ldengine').length) {
-				$('#ldengine').detach();
+				log.debug("SIDEBAR ALREADY EXISTS, detaching...");
+				$('#ldengine').remove();
 			}
+			// Kill subcontainer if it exists
+			if($(".lde-related-emails").length) {
+				log.debug("lde-related-emails already exist, detaching...");
+				$(".lde-related-emails").remove();
+			}
+			else {
+				log.debug("lDE emails don't already exist. after all.");
+			}
+
+			// Stop watching for missing content
+			LDEngine.watchTimer = LDEngine.watchTimer && window.clearInterval(LDEngine.watchTimer);
+
+			// Start watching for missing content
+			LDEngine.watchTimer = window.setInterval(LDEngine.sidebar.reattachIfNecessary,100);
+
 			// Create the container
-			var block = $('<div id="ldengine"></div>');
+			var container = $('#ldengine');
+			if (!container.length) container = $('<div id="ldengine"></div>');
+
 			LDEngine.sidebar.setSidebarHeight('#ldengine');
-			$('.adC').prepend(block);
+			$('.adC').prepend(container);
 
 			// No data, just a cheap way to render the html template
 			$.link.ldengineTemplate('#ldengine');
-
 		},
 
 		// Append loading spinner to sidebar, right now the process of checking login
@@ -425,6 +545,10 @@ var LDEngine = {
 			// Add the related emails to the sidebar
 			$.link.sidebarTemplate(".lde-related-emails", messageSnippets);
 
+			if (!$('.lde-related-emails').length) {
+				LDEngine.sidebar.append();
+			}
+
 			// Ellipsize the related email snippets
 			$('.lde-email-result').dotdotdot();
 
@@ -432,7 +556,7 @@ var LDEngine = {
 			for(var i = 0; i < messageSnippets.length; i++) {
 				var messageSnippet = $($('.lde-email-result')[i]);
 				messageSnippet.attr('data-id', messageSnippets[i].id);
-				messageSnippet.click(LDEngine.sidebar.clickSnippet);
+				messageSnippet.click(LDEngine.sidebar.selectSnippet);
 
 				
 				// Replace \n's with <br>'s
@@ -442,13 +566,25 @@ var LDEngine = {
 		},
 
 		//  Clicking on the snippet calls fetch
-		clickSnippet: function(e) {
-			log.debug( 'LDEngine.sidebar.clickSnippet()' );
+		selectSnippet: function(e) {
+			log.debug( 'LDEngine.sidebar.selectSnippet()' );
 
 			var id = $(e.currentTarget).attr('data-id');
 
 			// Fetch contents of popup
 			LDEngine.popup.fetch(id);
+		},
+
+		// Cancel the fetch
+		cancelSelectSnippet: function(e) {
+
+			var id = $(e.currentTarget).attr('data-id');
+
+			// Cancel pending xhr
+			if(LDEngine.popup.xhr) {
+				LDEngine.popup.xhr.abort();
+			}
+			LDEngine.popup.close();
 		},
 
 		progressBar: {
@@ -526,10 +662,9 @@ var LDEngine = {
 			LDEngine.popup.xhr = $.get(API_URL + '/message', {
 				id: id
 			}, function(model) {
-
+				
 				// will extend model to have its date property become a formated date
-				_.extend(model, {date: model.date && new Date(model.date).toString('MMM d')});
-
+				_.extend(model, {date: model.date && new Date(model.date).toString('MMM dd yyyy')});
 				LDEngine.popup.model = model;
 				LDEngine.popup.display();
 			});
@@ -558,7 +693,9 @@ var LDEngine = {
 				$('.lde-popup-content').hide();
 
 			} else {
-				// Retemplate
+				// Retemplate 
+				console.log(LDEngine.popup.model);
+
 				$.link.popupTemplate($('#lde-popup'), LDEngine.popup.model);
 
 				// Hide the loading spinner and display inner content
@@ -600,3 +737,12 @@ var LDEngine = {
 
 // Bind objects so we can use *this*
 _.bindAll(LDEngine.sidebar);
+
+// Watch for resize events and hide or show the sidebar accordingly
+$(function () {
+	$(window).bind('resize',_.throttle(function () {
+		if ($(window).width() < 1140) LDEngine.sidebar.hide(150);
+		else LDEngine.sidebar.show(250);
+	},25));
+});
+
