@@ -38,9 +38,8 @@ $(function() {
 	$(window).bind("popstate", function(event) {
 		log.debug( 'Window popstate' );
 		// On popstate, try to initialize the sidebar again
-		if(window.location.hash.match(/#inbox\/\S+/)) {
+
 			waitUntil(LDEngine.sidebar.isReadyToBeAppended, LDEngine.sidebar.init, 25);
-		}
 	});
 
 	// Create a deferred object to wrap around a call to Chrome's
@@ -656,7 +655,8 @@ var LDEngine = {
 
 			// Get the message details from the server
 			LDEngine.popup.xhr = $.get(API_URL + '/message', {
-				id: id
+				id: id,
+				itemtype: 'message'
 			}, function(model) {
 				// will extend model to have its date property become a formated date
 				_.extend(model, 
@@ -686,7 +686,7 @@ var LDEngine = {
 																recipient_string += nameOf + ' ' +  emailOf + '&#13;&#10;';
 															}
 															return recipient_string;
-															}())
+											}())
 								}
 						);
 				LDEngine.popup.model = model;
