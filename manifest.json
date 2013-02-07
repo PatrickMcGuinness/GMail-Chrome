@@ -1,6 +1,6 @@
 {
   "name": "LD Engine Developer",
-  "version": "2.5.13",
+  "version": "2.5.14",
   "description": "Imagine a world where you didn't hate your email.",
   "permissions": [
   ],
@@ -12,8 +12,8 @@
   "content_scripts": [
     {
       "matches": [ "*://mail.google.com/*"],
-      "js" : ["async.min.js","jquery-1.8.2.min.js","underscore-min.js","date.js","jquery.dotdotdot-1.5.1.js","jsrender.js","jquery.views.js","jquery.observable.js","ldengine.js", "jquery.mousewheel.min.js", "jquery.jscrollpane.min.js"],
-      "css" : ["ldengine.css", "jquery.jscrollpane.css"]
+      "js" : ["async.min.js","jquery-1.8.2.min.js","underscore-min.js","date.js","jquery.dotdotdot-1.5.1.js","jsrender.js","jquery.views.js","jquery.observable.js","ldengine.js", "moment.min.js"],
+      "css" : ["ldengine.css", "hint.min.css"]
     }
   ],
   "permissions": [

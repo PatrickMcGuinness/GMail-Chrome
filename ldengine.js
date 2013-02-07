@@ -22,7 +22,6 @@ var log = new Logger();
 // Bootstrap
 $(function() {
 	log.debug( 'Starting Bootstrap Function' );
-	console.log(" HELLO things have changed ");	
 	$( document ).ajaxError( function( event, xhr, ajaxOptions, thrownError ) {
 		log.debug( 'AJAX Error: ' + JSON.stringify( thrownError ) + ' in request ' + JSON.stringify( ajaxOptions ));
 	});
@@ -344,7 +343,6 @@ var LDEngine = {
 			// account status.
 			log.debug( 'Setting "no response" timer for 10 sec.' );
 			var noResponse = setTimeout(function() {
-					console.log(" NO RESPONSE FROM THE SERVER " );
 					log.debug( '"no response" timer fired!' );
 					LDEngine.sidebar.stopLoadingSpinner();
 					LDEngine.sidebar.appendNoResponse();
@@ -364,7 +362,6 @@ var LDEngine = {
 				clearTimeout(noResponse);
 				
 				LDEngine.sidebar.accountStatus = data;
-				console.log(" UI STATUS " + LDEngine.sidebar.accountStatus.status + " AND IS DATA EMPTY? " + jQuery.isEmptyObject(data) );
 				// Render the appropriate UI depending if you have the data
 				if (LDEngine.sidebar.accountStatus.status !== 'linked') {
 					log.debug( 'Rendering Linked UI' );
@@ -423,7 +420,6 @@ var LDEngine = {
 						Gmail.message.post(messageApiObj, function(messageSnippets, textStatus) { // afterwards
 
 							// Marshal data from server
-							console.log(messageSnippets);
 							// render the progressbar
 							log.debug( 'Render progress bar' );
 							LDEngine.sidebar.progressBar.render();
@@ -662,9 +658,40 @@ var LDEngine = {
 			LDEngine.popup.xhr = $.get(API_URL + '/message', {
 				id: id
 			}, function(model) {
-				
 				// will extend model to have its date property become a formated date
-				_.extend(model, {date: model.date && new Date(model.date).toString('MMM dd yyyy')});
+				_.extend(model, 
+								{
+									date: (function() {
+												if( model.date ) {
+													var moment_stringA, moment_stringB;
+													moment_stringA = moment(model.date).startOf('day').fromNow();
+													moment_stringB = moment(model.date).format("MMM Do YY");
+												}
+												return moment_stringB + ' (' + moment_stringA + ')';
+											}()),
+									msg_url: (function() {
+												var gmail_url = (document.location.href).match(/.*#/gi);
+												gmail_url += 'inbox/' + model.msgid;
+												var html_string = '<a href=\"'+ gmail_url +'\" target="_blank">Show in Gmail</a>'
+												return html_string;
+											}()),
+									//JsRender doesnt allow for much array manipulation, so we'll have to pass it things explicitly
+									first_recipient: model.recipients[0],
+									restof_recipients: (function() {
+															var recipient_string = '', nameOf, emailOf;
+															model.recipients.splice(0,1);
+															console.log(model.recipients.length);
+															for(var i = 0; i < model.recipients.length; i++ ) {
+																nameOf = model.recipients[i].name;
+																emailOf = model.recipients[i].email;
+																recipient_string += nameOf + ' ' +  emailOf + '&#13;&#10;';
+															}
+															console.log(recipient_string);
+															return recipient_string;
+
+															}())
+								}
+						);
 				LDEngine.popup.model = model;
 				LDEngine.popup.display();
 			});
@@ -673,7 +700,6 @@ var LDEngine = {
 		// Display the popup
 		display: function() {
 			log.debug( 'LDEngine.sidebar.popup.display()' );
-
 			// Draw the veil.
 			LDEngine.popup.maskMessageArea(true);
 
@@ -693,7 +719,7 @@ var LDEngine = {
 				$('.lde-popup-content').hide();
 
 			} else {
-				// Retemplate 
+				// Retemplate
 				console.log(LDEngine.popup.model);
 
 				$.link.popupTemplate($('#lde-popup'), LDEngine.popup.model);

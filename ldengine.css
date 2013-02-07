@@ -199,16 +199,16 @@
 	position: absolute;
 	background:white;
 	z-index: 1001;
-	border-radius: 10px;
 	right:285px;
 	top: 100px;
+	background-color: #CCF59F
 }
 
 .lde-popup-subject {
 	font-size: 16px;
 	font-weight: bold;
 	padding-bottom: 6px;
-	border-bottom: solid 1px #ccc;
+	border-bottom: solid 1px #888;
 	margin-bottom: 10px;
 }
 
@@ -220,6 +220,9 @@
 .lde-popup-sender-name {
 	font-size: 14px;
 	line-height: 14px;
+	box-shadow: 0 0 1px #777;
+	padding-right: 3px;
+	padding-left: 3px;
 	font-weight: bold;
 	float: left;
 	margin-right: 10px;
@@ -229,16 +232,25 @@
 	font-size: 14px;
 	line-height: 14px;
 	font-weight: bold;
+	box-shadow: 0 0 1px #777;
+	padding-right: 3px;
+	padding-left: 3px;
 	float: left;
 	margin-right: 10px;
-	display: none;
 }
 
 .lde-popup-recieved-email {
 	line-height: 14px;
 	font-size: 12px;
 	float: left;
-	display: none;
+}
+
+.lde-popup-recieved-hint {
+	font-size: 10px;
+	line-height: 17px;
+	float: left;
+	text-indent: 5px;
+	font-style: italic;
 }
 
 .lde-popup-sender-email {
@@ -255,14 +267,17 @@
 }
 
 .lde-popup-msg-text {
+	box-shadow: 0 0 5px #444;
 	line-height: 180%;
 	padding-right: 2%;
+	padding-left: 1%;
 	/*padding-left: 7%;*/
 	font-size: 12px;
-	height: 240px;
-	width: 595px;
+	height: 70%;
+	width: 585px;
 	overflow: auto;
 	clear: both;
+	background-color: #ffffff;
 }
 
 .lde-popup-msg-showoriginal {
@@ -272,13 +287,10 @@
 	margin: 7px;
 }
 
-.none {
-	background-color: #a4eb55;
-	width: 100%;
-	top: 0px;
+.lde-header-color {
+		top: 0px;
 	left: 0px;
-	display: none;	
-	overflow:auto;
+	z-index: -1;
 }
 /**
  *  Container containing individual snippet containing the sidebar UI,
@@ -447,4 +459,24 @@ html[xmlns] .lde-clearfix {
 
 .oM {
 	display: none;
+}
+
+/************* GMAIL-SCROLLBAR CSS *************/
+::-webkit-scrollbar {
+    width: 10px;
+}
+::-webkit-scrollbar-track {
+    background: #FFF;
+    -webkit-box-shadow: inset 1px 1px 2px rgba(0,0,0,0.1);
+}
+::-webkit-scrollbar-thumb {
+    background: #CCC;
+    -webkit-box-shadow: inset 1px 1px 2px rgba(0,0,0,0.2);
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #AAA;
+}
+::-webkit-scrollbar-thumb:active {
+    background: #888;
+    -webkit-box-shadow: inset 1px 1px 2px rgba(0,0,0,0.3);
 }
