@@ -680,15 +680,12 @@ var LDEngine = {
 									restof_recipients: (function() {
 															var recipient_string = '', nameOf, emailOf;
 															model.recipients.splice(0,1);
-															console.log(model.recipients.length);
 															for(var i = 0; i < model.recipients.length; i++ ) {
 																nameOf = model.recipients[i].name;
 																emailOf = model.recipients[i].email;
 																recipient_string += nameOf + ' ' +  emailOf + '&#13;&#10;';
 															}
-															console.log(recipient_string);
 															return recipient_string;
-
 															}())
 								}
 						);
