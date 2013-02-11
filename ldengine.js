@@ -82,10 +82,7 @@ $(function() {
 		}, 'html'),
 		// $.get(chrome.extension.getURL("noResonse.tmpl"), function(data) {
 		// 	$.templates('noResonseTemplate', data);
-		// }, 'html'),e
-		$.get(chrome.extension.getURL("progressbar.tmpl"), function(data) {
-			$.templates('progressbarTemplate', data);
-		}, 'html'),
+		// }, 'html'),
 		$.get(chrome.extension.getURL("noSnippets.tmpl"), function(data) {
 			$.templates('noSnippetsTemplate', data);
 		}, 'html')).then(function() {
@@ -406,8 +403,8 @@ var LDEngine = {
 					//hack	
 					var currentUrl = document.location.href;
 					var threadId;
-
-					var threadArray = currentUrl.match(/inbox\x2f.*/i);
+		
+					var threadArray = currentUrl.match(/\x23.*\x2f.*/i);
 					var threadString = threadArray.join();
 					threadString = threadString.split('\x2f');
 					threadId = parseInt(threadString[1], 16);
@@ -417,11 +414,6 @@ var LDEngine = {
 						messageApiObj.Message.thrid = threadId;
 						
 						Gmail.message.post(messageApiObj, function(messageSnippets, textStatus) { // afterwards
-
-							// Marshal data from server
-							// render the progressbar
-							log.debug( 'Render progress bar' );
-							LDEngine.sidebar.progressBar.render();
 
 							// If no snippets are returned, render the noSnippets view and stop the ajax spinner.
 							if (messageSnippets.length === 0) {
@@ -580,40 +572,6 @@ var LDEngine = {
 				LDEngine.popup.xhr.abort();
 			}
 			LDEngine.popup.close();
-		},
-
-		progressBar: {
-
-			// Renders the progress bar in to the sidebar and keeps it updated until the
-			// entire inbox has been indexed.
-			render: function() {
-				log.debug( 'LDEngine.sidebar.progressBar.render()' );
-
-				var percentIndexed = LDEngine.sidebar.accountStatus.percentIndexed;
-
-				// Dont even render if we already have everything indexed
-				if (percentIndexed === 100) {
-					log.debug( '100% Indexed, hiding progress bar.' );
-					LDEngine.sidebar.progressBar.hide();
-					return;
-				}
-
-				// Place the progress bar
-				$('.lde-progress-bar').html('');
-
-				// updates UI based on new percentIndex every loop
-				$.link.progressbarTemplate('.lde-progress-bar');
-				log.debug( 'Setting progress bar % to ' + percentIndexed );
-				$('.lde-progress-status').css({
-					width: percentIndexed + '%'
-				});
-				$('.lde-progress-value').html(percentIndexed + '%');
-			},
-
-			hide: function() {
-				log.debug( 'LDEngine.sidebar.progressBar.hide()' );
-				$('.lde-progress-bar').fadeOut(2500, 'linear');
-			}
 		},
 
 		senderInfo: {
