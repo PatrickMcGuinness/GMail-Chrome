@@ -1,6 +1,6 @@
 {
   "name": "LD Engine",
-  "version": "12.12.7",
+  "version": "13.2.14",
   "description": "Imagine a world where you didn't hate your email.",
   "permissions": [
   ],
@@ -12,8 +12,8 @@
   "content_scripts": [
     {
       "matches": [ "*://mail.google.com/*"],
-      "js" : ["async.min.js","jquery-1.8.2.min.js","underscore-min.js","date.js","jquery.dotdotdot-1.5.1.js","jsrender.js","jquery.views.js","jquery.observable.js","ldengine.js", "jquery.mousewheel.min.js"],
-      "css" : ["ldengine.css"]
+      "js" : ["async.min.js","jquery-1.8.2.min.js","underscore-min.js","date.js","jquery.dotdotdot-1.5.1.js","jsrender.js","jquery.views.js","jquery.observable.js","ldengine.js", "moment.min.js"],
+      "css" : ["ldengine.css", "hint.min.css"]
     }
   ],
   "permissions": [
@@ -39,7 +39,8 @@
     "icon_close.gif",
     "close_message.gif",
     "image_anonymousLarge@2x.png",
-    "logo_engine@2x.png"
+    "logo_engine@2x.png",
+	"search_glass.png"
   ],
   "options_page": "options.html"
 }
