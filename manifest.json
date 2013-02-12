@@ -39,7 +39,8 @@
     "icon_close.gif",
     "close_message.gif",
     "image_anonymousLarge@2x.png",
-    "logo_engine@2x.png"
+    "logo_engine@2x.png",
+	"search_glass.png"
   ],
   "options_page": "options.html"
 }
