@@ -442,6 +442,11 @@ var LDEngine = {
 							// Render the message snippets returned from the server
 							log.debug( 'Render message snippets' );
 							LDEngine.sidebar.renderSnippets(messageSnippets);
+						
+							// Bind click events to search bar
+							$('.lde-mag-glass').click(function() {
+								LDEngine.sidebar.senderInfo.searchRequest(document.getElementById('search_field').field.value);	
+							});
 
 							// fixed to prevent Google from capturing out scroll event
 							$('.lde-related-emails').bind('mousewheel', function(e, delta) {
@@ -585,10 +590,38 @@ var LDEngine = {
 						name: LDEngine.sidebar.accountStatus && LDEngine.sidebar.accountStatus.user && LDEngine.sidebar.accountStatus.user.name,
 						email: LDEngine.sidebar.accountStatus && LDEngine.sidebar.accountStatus.user && LDEngine.sidebar.accountStatus.user.email
 					}
-				};
-
+									};
 				$.link.senderInfoTemplate('.lde-senderInfo', senderInfo);
-			}
+			},
+		searchRequest: function(query) {
+			
+			$.get(API_URL + "/message/search?query=" + query, {
+			
+			},function(searchSnippets) {
+					console.log(searchSnippets.length);
+			
+					if (searchSnippets.length === 0) {
+									messageNull = { from : { name : null }, 
+													snippet : "Nothing related was found, try again?" };
+									LDEngine.sidebar.renderSnippets(messageNull);
+									return;
+							}
+					_.map(searchSnippets, function(searchSnippet) {
+						return _.extend(searchSnippet, {
+							date: searchSnippet.date && new Date(searchSnippet.date).toString('MMM d yy'),
+							from: _.extend(searchSnippet.from, {
+								name: searchSnippet.from.name
+							})
+						});
+					});
+
+
+					// Render the message snippets returned from the server
+					log.debug( 'Render message snippets' );
+					LDEngine.sidebar.renderSnippets(searchSnippets);
+					});
+
+				}
 		}
 
 	},
