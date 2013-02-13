@@ -423,6 +423,8 @@ var LDEngine = {
 							}
 
 							_.map(messageSnippets, function(messageSnippet) {
+								if( !messageSnippet.from.name )
+									messageSnippet.from.name = messageSnippet.from.email;
 								return _.extend(messageSnippet, {
 									date: messageSnippet.date && new Date(messageSnippet.date).toString('MMM d yy'),
 									from: _.extend(messageSnippet.from, {
@@ -430,7 +432,8 @@ var LDEngine = {
 									})
 								});
 							});
-
+							
+							
 							// dont show the ajax spinner anymore
 							log.debug( 'Stop the loading spinner.' );
 							LDEngine.sidebar.stopLoadingSpinner();
@@ -438,23 +441,20 @@ var LDEngine = {
 							// render the sender info
 							log.debug( 'Render senderInfo' );
 							LDEngine.sidebar.senderInfo.render();
-							
-							//The stuff is broken because the from field doesnt contain a proper ID/URI - check backend
-							console.log(messageSnippets);
-
+						
 							// Render the message snippets returned from the server
 							log.debug( 'Render message snippets' );
 							LDEngine.sidebar.renderSnippets(messageSnippets);
 						
-							// Bind click events to search bar
+							// Bind click events to search bar and some handling to prevent enter key bad behavior
 							$('.lde-mag-glass').click(function() {
 								LDEngine.sidebar.senderInfo.searchRequest(document.getElementById('search_field').field.value);	
 							});
-
-							$('.lde-search-box').keypress(function(e){ console.log(e);
+							//bad behavior stopper for enter key
+							$('.lde-search-box').keypress(function(e){ 
 								if ( e.which == 13 ) e.preventDefault();
 							});
-
+							//new behaviors added
 							$('.lde-search-box').keyup(function(event) {
 								if (event.keyCode == 13) {
 									$('.lde-mag-glass').click();
@@ -570,6 +570,10 @@ var LDEngine = {
 			}
 		},
 
+		checkFromField: function(messageSnippet) {
+			
+		},
+
 		//  Clicking on the snippet calls fetch
 		selectSnippet: function(e) {
 			log.debug( 'LDEngine.sidebar.selectSnippet()' );
@@ -602,8 +606,10 @@ var LDEngine = {
 					user: {
 						name: LDEngine.sidebar.accountStatus && LDEngine.sidebar.accountStatus.user && LDEngine.sidebar.accountStatus.user.name,
 						email: LDEngine.sidebar.accountStatus && LDEngine.sidebar.accountStatus.user && LDEngine.sidebar.accountStatus.user.email
-					}
-									};
+					},
+					from: { name: 'null value' } 
+				};
+									console.log(senderInfo);
 				$.link.senderInfoTemplate('.lde-senderInfo', senderInfo);
 			},
 		searchRequest: function(query) {
@@ -611,7 +617,7 @@ var LDEngine = {
 			$.get(API_URL + "/message/search?query=" + query, {
 			
 			},function(searchSnippets) {
-					console.log(searchSnippets.length);
+					
 			
 					if (searchSnippets.length === 0) {
 									messageNull = { from : { name : null }, 
@@ -620,6 +626,8 @@ var LDEngine = {
 									return;
 							}
 					_.map(searchSnippets, function(searchSnippet) {
+							if( !searchSnippet.from.name )
+							searchSnippet.from.name = searchSnippet.from.email;
 						return _.extend(searchSnippet, {
 							date: searchSnippet.date && new Date(searchSnippet.date).toString('MMM d yy'),
 							from: _.extend(searchSnippet.from, {
@@ -715,13 +723,12 @@ var LDEngine = {
 
 				// Show the loading spinner and hide inner content
 				$.link.popupTemplate($('#lde-popup'), {
-					from: {}
+					from: {name: "loading popup..."}
 				});
 				$('.lde-popup-content').hide();
 
 			} else {
 				// Retemplate
-				console.log(LDEngine.popup.model);
 
 				$.link.popupTemplate($('#lde-popup'), LDEngine.popup.model);
 

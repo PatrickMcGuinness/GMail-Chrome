@@ -73,7 +73,7 @@
  */
 .lde-sender {
 	float: left;
-	font-size: 90%;
+	font-size: 75%;
 	font-weight: bold;
 }
 
@@ -83,6 +83,7 @@
 .lde-date {
 	font-size: 80%;
 	float:right;
+	margin-right: 25px;
 }
 /**
  *	Search styles
