@@ -438,6 +438,9 @@ var LDEngine = {
 							// render the sender info
 							log.debug( 'Render senderInfo' );
 							LDEngine.sidebar.senderInfo.render();
+							
+							//The stuff is broken because the from field doesnt contain a proper ID/URI - check backend
+							console.log(messageSnippets);
 
 							// Render the message snippets returned from the server
 							log.debug( 'Render message snippets' );
@@ -663,7 +666,7 @@ var LDEngine = {
 									msg_url: (function() {
 												var gmail_url = (document.location.href).match(/.*#/gi);
 												gmail_url += 'inbox/' + model.msgid;
-												var html_string = '<a href=\"'+ gmail_url +'\" target="_blank">Show in Gmail</a>'
+				var html_string = '<a href="" target="_blank" onclick="window.open(\'' + gmail_url + '\')">Show Original</a>'
 												return html_string;
 											}()),
 									//JsRender doesnt allow for much array manipulation, so we'll have to pass it things explicitly
