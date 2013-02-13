@@ -115,13 +115,23 @@ input[type="text"] {
     padding: 5px;
 }
 
-.lde-help {
+.lde-links-account {
 	background-color: #ccc;
 	font-size: 10px;
 	width: 92%;
 	text-align: right;
 	padding-bottom: 5px;
-	margin-left: 170px;
+	margin-left: 110px;
+}
+
+.lde-links-mailto {
+	background-color: #ccc;
+	font-size: 10px;
+	width: 92%;
+	text-align: left;
+	padding-bottom: 5px;
+	margin-left: 0px;
+
 }
 
 .lde-search-info {
