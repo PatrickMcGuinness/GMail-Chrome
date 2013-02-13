@@ -451,6 +451,16 @@ var LDEngine = {
 								LDEngine.sidebar.senderInfo.searchRequest(document.getElementById('search_field').field.value);	
 							});
 
+							$('.lde-search-box').keypress(function(e){ console.log(e);
+								if ( e.which == 13 ) e.preventDefault();
+							});
+
+							$('.lde-search-box').keyup(function(event) {
+								if (event.keyCode == 13) {
+									$('.lde-mag-glass').click();
+								}
+							});
+
 							// fixed to prevent Google from capturing out scroll event
 							$('.lde-related-emails').bind('mousewheel', function(e, delta) {
 								e.stopPropagation();
