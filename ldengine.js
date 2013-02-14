@@ -609,7 +609,6 @@ var LDEngine = {
 					},
 					from: { name: 'null value' } 
 				};
-									console.log(senderInfo);
 				$.link.senderInfoTemplate('.lde-senderInfo', senderInfo);
 			},
 		searchRequest: function(query) {
@@ -659,7 +658,7 @@ var LDEngine = {
 			log.debug( 'LDEngine.sidebar.popup.fetch()' );
 
 			// Display empty popup, clear model, and abort pending xhr request if necessary
-			LDEngine.popup.model = null;
+			LDEngine.popup.model = null; 
 			LDEngine.popup.display();
 			if(LDEngine.popup.xhr) {
 				LDEngine.popup.xhr.abort();
@@ -711,9 +710,8 @@ var LDEngine = {
 			log.debug( 'LDEngine.sidebar.popup.display()' );
 			// Draw the veil.
 			LDEngine.popup.maskMessageArea(true);
-
+			
 			// Render the popup content
-
 			if(!LDEngine.popup.model) {
 				// Attach the popup container if necessary
 				if(! $('#lde-popup').length) {
@@ -722,14 +720,17 @@ var LDEngine = {
 				}
 
 				// Show the loading spinner and hide inner content
-				$.link.popupTemplate($('#lde-popup'), {
-					from: {name: "loading popup..."}
+				// This code is really problematic so dont uncomment it
+
+			/*	$.link.popupTemplate($('#lde-popup'), {
+					model: { 
+							from: { name: "loading popup..." }
+						}
 				});
-				$('.lde-popup-content').hide();
+				$('.lde-popup-content').hide();*/
 
 			} else {
 				// Retemplate
-
 				$.link.popupTemplate($('#lde-popup'), LDEngine.popup.model);
 
 				// Hide the loading spinner and display inner content
