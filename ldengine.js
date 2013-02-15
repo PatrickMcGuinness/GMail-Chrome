@@ -421,10 +421,12 @@ var LDEngine = {
 									LDEngine.sidebar.stopLoadingSpinner();
 									return;
 							}
-
+							console.log("check out snippets"); console.log(messageSnippets);
 							_.map(messageSnippets, function(messageSnippet) {
 								if( !messageSnippet.from.name )
 									messageSnippet.from.name = messageSnippet.from.email;
+								else
+									messageSnippet.from.name = messageSnippet.from.name;
 								return _.extend(messageSnippet, {
 									date: messageSnippet.date && new Date(messageSnippet.date).toString('MMM d yy'),
 									from: _.extend(messageSnippet.from, {
@@ -570,10 +572,6 @@ var LDEngine = {
 			}
 		},
 
-		checkFromField: function(messageSnippet) {
-			
-		},
-
 		//  Clicking on the snippet calls fetch
 		selectSnippet: function(e) {
 			log.debug( 'LDEngine.sidebar.selectSnippet()' );
@@ -623,10 +621,15 @@ var LDEngine = {
 													snippet : "Nothing related was found, try again?" };
 									LDEngine.sidebar.renderSnippets(messageNull);
 									return;
-							}
+					};
+					
+					console.log("Search snippets"); console.log(searchSnippets);
+					//Perform operations on Snippets
 					_.map(searchSnippets, function(searchSnippet) {
 							if( !searchSnippet.from.name )
 							searchSnippet.from.name = searchSnippet.from.email;
+							else 
+							searchSnippet.from.name = searchSnippet.from.name;
 						return _.extend(searchSnippet, {
 							date: searchSnippet.date && new Date(searchSnippet.date).toString('MMM d yy'),
 							from: _.extend(searchSnippet.from, {
@@ -656,7 +659,6 @@ var LDEngine = {
 		// Gets the message details from the server
 		fetch: function(id) {
 			log.debug( 'LDEngine.sidebar.popup.fetch()' );
-
 			// Display empty popup, clear model, and abort pending xhr request if necessary
 			LDEngine.popup.model = null; 
 			LDEngine.popup.display();
