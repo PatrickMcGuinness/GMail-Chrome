@@ -421,12 +421,9 @@ var LDEngine = {
 									LDEngine.sidebar.stopLoadingSpinner();
 									return;
 							}
-							console.log("check out snippets"); console.log(messageSnippets);
 							_.map(messageSnippets, function(messageSnippet) {
 								if( !messageSnippet.from.name )
 									messageSnippet.from.name = messageSnippet.from.email;
-								else
-									messageSnippet.from.name = messageSnippet.from.name;
 								return _.extend(messageSnippet, {
 									date: messageSnippet.date && new Date(messageSnippet.date).toString('MMM d yy'),
 									from: _.extend(messageSnippet.from, {
@@ -604,8 +601,7 @@ var LDEngine = {
 					user: {
 						name: LDEngine.sidebar.accountStatus && LDEngine.sidebar.accountStatus.user && LDEngine.sidebar.accountStatus.user.name,
 						email: LDEngine.sidebar.accountStatus && LDEngine.sidebar.accountStatus.user && LDEngine.sidebar.accountStatus.user.email
-					},
-					from: { name: 'null value' } 
+					}
 				};
 				$.link.senderInfoTemplate('.lde-senderInfo', senderInfo);
 			},
@@ -614,22 +610,20 @@ var LDEngine = {
 			$.get(API_URL + "/message/search?query=" + query, {
 			
 			},function(searchSnippets) {
-					
-			
 					if (searchSnippets.length === 0) {
-									messageNull = { from : { name : null }, 
-													snippet : "Nothing related was found, try again?" };
-									LDEngine.sidebar.renderSnippets(messageNull);
-									return;
+							messageNull = { 
+								from : { name : null }, 
+								snippet : "Nothing related was found, try again?" };
+							LDEngine.sidebar.renderSnippets(messageNull);
+							return;
 					};
 					
-					console.log("Search snippets"); console.log(searchSnippets);
 					//Perform operations on Snippets
 					_.map(searchSnippets, function(searchSnippet) {
 							if( !searchSnippet.from.name )
 							searchSnippet.from.name = searchSnippet.from.email;
 							else 
-							searchSnippet.from.name = searchSnippet.from.name;
+						    {}	
 						return _.extend(searchSnippet, {
 							date: searchSnippet.date && new Date(searchSnippet.date).toString('MMM d yy'),
 							from: _.extend(searchSnippet.from, {
@@ -685,7 +679,7 @@ var LDEngine = {
 									msg_url: (function() {
 												var gmail_url = (document.location.href).match(/.*#/gi);
 												gmail_url += 'inbox/' + model.msgid;
-				var html_string = '<a href="" target="_blank" onclick="window.open(\'' + gmail_url + '\')">Show Original</a>'
+				var html_string = '<a href="" target="_blank" onclick="window.open(\'' + gmail_url + '\')">Show Original</a>';
 												return html_string;
 											}()),
 									//JsRender doesnt allow for much array manipulation, so we'll have to pass it things explicitly
@@ -724,7 +718,7 @@ var LDEngine = {
 				// Show the loading spinner and hide inner content
 				// This code is really problematic so dont uncomment it
 
-			/*	$.link.popupTemplate($('#lde-popup'), {
+				/*$.link.popupTemplate($('#lde-popup'), {
 					model: { 
 							from: { name: "loading popup..." }
 						}
@@ -734,7 +728,6 @@ var LDEngine = {
 			} else {
 				// Retemplate
 				$.link.popupTemplate($('#lde-popup'), LDEngine.popup.model);
-
 				// Hide the loading spinner and display inner content
 				$('.lde-ajax-spinner').hide();
 				$('.lde-popup-content').show();

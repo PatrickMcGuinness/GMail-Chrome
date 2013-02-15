@@ -405,8 +405,9 @@ input[type="text"] {
 	width: 32px;
 	height: 32px;
 	margin-top: -16px; /* Half the height */
-	margin-left: -16px; /* Half the width */	
+	margin-left: -16px; /* Half the width */
 	background-image:url('chrome-extension://__MSG_@@extension_id__/ajax-loader.gif');
+	background-repeat: no-repeat;
 }
 
 .lde-popup-close-button {
