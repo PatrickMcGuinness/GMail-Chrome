@@ -73,7 +73,7 @@
  */
 .lde-sender {
 	float: left;
-	font-size: 90%;
+	font-size: 75%;
 	font-weight: bold;
 }
 
@@ -83,6 +83,7 @@
 .lde-date {
 	font-size: 80%;
 	float:right;
+	margin-right: 25px;
 }
 /**
  *	Search styles
@@ -115,13 +116,23 @@ input[type="text"] {
     padding: 5px;
 }
 
-.lde-help {
+.lde-links-account {
 	background-color: #ccc;
 	font-size: 10px;
 	width: 92%;
 	text-align: right;
 	padding-bottom: 5px;
-	margin-left: 170px;
+	margin-left: 110px;
+}
+
+.lde-links-mailto {
+	background-color: #ccc;
+	font-size: 10px;
+	width: 92%;
+	text-align: left;
+	padding-bottom: 5px;
+	margin-left: 0px;
+
 }
 
 .lde-search-info {
@@ -394,8 +405,9 @@ input[type="text"] {
 	width: 32px;
 	height: 32px;
 	margin-top: -16px; /* Half the height */
-	margin-left: -16px; /* Half the width */	
+	margin-left: -16px; /* Half the width */
 	background-image:url('chrome-extension://__MSG_@@extension_id__/ajax-loader.gif');
+	background-repeat: no-repeat;
 }
 
 .lde-popup-close-button {

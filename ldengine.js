@@ -419,8 +419,9 @@ var LDEngine = {
 									LDEngine.sidebar.stopLoadingSpinner();
 									return;
 							}
-
 							_.map(messageSnippets, function(messageSnippet) {
+								if( !messageSnippet.from.name )
+									messageSnippet.from.name = messageSnippet.from.email;
 								return _.extend(messageSnippet, {
 									date: messageSnippet.date && new Date(messageSnippet.date).toString('MMM d yy'),
 									from: _.extend(messageSnippet.from, {
@@ -428,7 +429,8 @@ var LDEngine = {
 									})
 								});
 							});
-
+							
+							
 							// dont show the ajax spinner anymore
 							log.debug( 'Stop the loading spinner.' );
 							LDEngine.sidebar.stopLoadingSpinner();
@@ -436,10 +438,25 @@ var LDEngine = {
 							// render the sender info
 							log.debug( 'Render senderInfo' );
 							LDEngine.sidebar.senderInfo.render();
-
+						
 							// Render the message snippets returned from the server
 							log.debug( 'Render message snippets' );
 							LDEngine.sidebar.renderSnippets(messageSnippets);
+						
+							// Bind click events to search bar and some handling to prevent enter key bad behavior
+							$('.lde-mag-glass').click(function() {
+								LDEngine.sidebar.senderInfo.searchRequest(document.getElementById('search_field').field.value);	
+							});
+							//bad behavior stopper for enter key
+							$('.lde-search-box').keypress(function(e){ 
+								if ( e.which == 13 ) e.preventDefault();
+							});
+							//new behaviors added
+							$('.lde-search-box').keyup(function(event) {
+								if (event.keyCode == 13) {
+									$('.lde-mag-glass').click();
+								}
+							});
 
 							// fixed to prevent Google from capturing out scroll event
 							$('.lde-related-emails').bind('mousewheel', function(e, delta) {
@@ -583,9 +600,42 @@ var LDEngine = {
 						email: LDEngine.sidebar.accountStatus && LDEngine.sidebar.accountStatus.user && LDEngine.sidebar.accountStatus.user.email
 					}
 				};
-
 				$.link.senderInfoTemplate('.lde-senderInfo', senderInfo);
-			}
+			},
+		searchRequest: function(query) {
+			
+			$.get(API_URL + "/message/search?query=" + query, {
+			
+			},function(searchSnippets) {
+					if (searchSnippets.length === 0) {
+							messageNull = { 
+								from : { name : null }, 
+								snippet : "Nothing related was found, try again?" };
+							LDEngine.sidebar.renderSnippets(messageNull);
+							return;
+					};
+					
+					//Perform operations on Snippets
+					_.map(searchSnippets, function(searchSnippet) {
+							if( !searchSnippet.from.name )
+							searchSnippet.from.name = searchSnippet.from.email;
+							else 
+						    {}	
+						return _.extend(searchSnippet, {
+							date: searchSnippet.date && new Date(searchSnippet.date).toString('MMM d yy'),
+							from: _.extend(searchSnippet.from, {
+								name: searchSnippet.from.name
+							})
+						});
+					});
+
+
+					// Render the message snippets returned from the server
+					log.debug( 'Render message snippets' );
+					LDEngine.sidebar.renderSnippets(searchSnippets);
+					});
+
+				}
 		}
 
 	},
@@ -600,63 +650,113 @@ var LDEngine = {
 		// Gets the message details from the server
 		fetch: function(id) {
 			log.debug( 'LDEngine.sidebar.popup.fetch()' );
-
 			// Display empty popup, clear model, and abort pending xhr request if necessary
-			LDEngine.popup.model = null;
+			LDEngine.popup.model = null; 
 			LDEngine.popup.display();
 			if(LDEngine.popup.xhr) {
 				LDEngine.popup.xhr.abort();
 			}
-
 			// Get the message details from the server
 			LDEngine.popup.xhr = $.get(API_URL + '/message', {
 				id: id,
 				itemtype: 'message'
 			}, function(model) {
-				// will extend model to have its date property become a formated date
-				_.extend(model, 
-								{
-									date: (function() {
-												if( model.date ) {
-													var moment_stringA, moment_stringB;
-													moment_stringA = moment(model.date).startOf('day').fromNow();
-													moment_stringB = moment(model.date).format("MMM Do YY");
-												}
-												return moment_stringB + ' (' + moment_stringA + ')';
-											}()),
-									msg_url: (function() {
-												var gmail_url = (document.location.href).match(/.*#/gi);
-												gmail_url += 'inbox/' + model.msgid;
-												var html_string = '<a href=\"'+ gmail_url +'\" target="_blank">Show in Gmail</a>'
-												return html_string;
-											}()),
-									//JsRender doesnt allow for much array manipulation, so we'll have to pass it things explicitly
-									first_recipient: model.recipients[0],
-									restof_recipients: (function() {
-															var recipient_string = '', nameOf, emailOf;
-															model.recipients.splice(0,1);
-															for(var i = 0; i < model.recipients.length; i++ ) {
-																nameOf = model.recipients[i].name;
-																emailOf = model.recipients[i].email;
-																recipient_string += nameOf + ' ' +  emailOf + '&#13;&#10;';
-															}
-															return recipient_string;
-											}())
-								}
-						);
+				//check what message is returned and extend model accordingly
+				LDEngine.popup.typeOfMessage(model);
+				
 				LDEngine.popup.model = model;
 				LDEngine.popup.display();
 			});
 		},
+		
+		typeOfMessage: function(model) {
+			var serviceName = model.appData_serviceName;
+			switch (serviceName) {
+				case 'Facebook':
+					LDEngine.popup.facebookExtend(model);
+				break;
+				case 'Twitter':
+					LDEngine.popup.twitterExtend(model);
+				break;
+				default:
+				//gmail is default
+					LDEngine.popup.gmailExtend(model);
+			}
+		},
+		facebookExtend: function(model) {
+			_.extend(model, 
+				{
+					date: (function() {
+						model.date *= 1000
+						if( model.date ) {
+							var moment_stringA, moment_stringB;
+							moment_stringA = moment(model.date).startOf('day').fromNow();
+							moment_stringB = moment(model.date).format("MMM Do YY");
+						}
+						return moment_stringB + ' (' + moment_stringA + ')';
+					}()),
 
+					msg_url: null,
+					//JsRender template workaround
+					first_recipient_name: null,
+					first_recipient_email: "There are no recipients for this message.",
+					from_name: model.from.name,
+					from_email: null,
+					restof_recipients: null
+					});
+		},
+		twitterExtend: function(model) {
+
+		},
+		gmailExtend: function(model) {
+			_.extend(model, 
+				{
+					date: (function() {
+						if( model.date ) {
+							var moment_stringA, moment_stringB;
+							moment_stringA = moment(model.date).startOf('day').fromNow();
+							moment_stringB = moment(model.date).format("MMM Do YY");
+						}
+						return moment_stringB + ' (' + moment_stringA + ')';
+					}()),
+
+					msg_url: (function() {
+						var gmail_url = (document.location.href).match(/.*#/gi);
+						gmail_url += 'inbox/' + model.msgid;
+						var html_string = '<a href="" target="_blank" onclick="window.open(\'' + gmail_url + '\')">Show Original</a>';
+						return html_string;
+					}()),
+
+					//JsRender template workaround
+					first_recipient_name: model.recipients[0].name,
+					first_recipient_email: model.recipients[0].email,
+					from_name: model.from.name,
+					from_email: model.from.email,
+					restof_recipients: (function() {
+							if ( model.recipients.length > 1 ) {
+								var recipient_string = '', nameOf, emailOf;
+								var html_string;
+								model.recipients.splice(0,1);
+								for(var i = 0; i < model.recipients.length; i++ ) {
+									nameOf = model.recipients[i].name;
+									emailOf = model.recipients[i].email;
+									recipient_string += nameOf + ' ' +  emailOf + '&#13;&#10;';
+								}
+								html_string = "<div class='lde-popup-recieved-hint hint hint--bottom' data-hint='" + recipient_string +  "'>...See more</div>";
+								return html_string;
+							}
+							else
+								return null;
+					}())
+				});
+		},
 		// Display the popup
 		display: function() {
 			log.debug( 'LDEngine.sidebar.popup.display()' );
 			// Draw the veil.
 			LDEngine.popup.maskMessageArea(true);
-
+			
 			// Render the popup content
-
 			if(!LDEngine.popup.model) {
 				// Attach the popup container if necessary
 				if(! $('#lde-popup').length) {
@@ -666,21 +766,18 @@ var LDEngine = {
 
 				// Show the loading spinner and hide inner content
 				$.link.popupTemplate($('#lde-popup'), {
-					from: {}
+					model: { 
+							from: { name: "loading popup..." }
+						}
 				});
 				$('.lde-popup-content').hide();
-
 			} else {
 				// Retemplate
-				console.log(LDEngine.popup.model);
-
 				$.link.popupTemplate($('#lde-popup'), LDEngine.popup.model);
-
 				// Hide the loading spinner and display inner content
 				$('.lde-ajax-spinner').hide();
 				$('.lde-popup-content').show();
 			}
-
 			// Hook up the close button
 			$('.lde-popup-close-button').click(LDEngine.popup.close);
 		},
