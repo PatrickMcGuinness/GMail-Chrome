@@ -659,48 +659,100 @@ var LDEngine = {
 			if(LDEngine.popup.xhr) {
 				LDEngine.popup.xhr.abort();
 			}
-
 			// Get the message details from the server
 			LDEngine.popup.xhr = $.get(API_URL + '/message', {
 				id: id,
 				itemtype: 'message'
 			}, function(model) {
-				// will extend model to have its date property become a formated date
-				_.extend(model, 
-								{
-									date: (function() {
-												if( model.date ) {
-													var moment_stringA, moment_stringB;
-													moment_stringA = moment(model.date).startOf('day').fromNow();
-													moment_stringB = moment(model.date).format("MMM Do YY");
-												}
-												return moment_stringB + ' (' + moment_stringA + ')';
-											}()),
-									msg_url: (function() {
-												var gmail_url = (document.location.href).match(/.*#/gi);
-												gmail_url += 'inbox/' + model.msgid;
-				var html_string = '<a href="" target="_blank" onclick="window.open(\'' + gmail_url + '\')">Show Original</a>';
-												return html_string;
-											}()),
-									//JsRender doesnt allow for much array manipulation, so we'll have to pass it things explicitly
-									first_recipient: model.recipients[0],
-									restof_recipients: (function() {
-															var recipient_string = '', nameOf, emailOf;
-															model.recipients.splice(0,1);
-															for(var i = 0; i < model.recipients.length; i++ ) {
-																nameOf = model.recipients[i].name;
-																emailOf = model.recipients[i].email;
-																recipient_string += nameOf + ' ' +  emailOf + '&#13;&#10;';
-															}
-															return recipient_string;
-											}())
-								}
-						);
+				//check what message is returned and extend model accordingly
+				LDEngine.popup.typeOfMessage(model);
+				
 				LDEngine.popup.model = model;
 				LDEngine.popup.display();
 			});
 		},
+		
+		typeOfMessage: function(model) {
+			var serviceName = model.appData_serviceName;
+			switch (serviceName) {
+				case 'Facebook':
+					LDEngine.popup.facebookExtend(model);
+				break;
+				case 'Twitter':
+					LDEngine.popup.twitterExtend(model);
+				break;
+				default:
+				//gmail is default
+					LDEngine.popup.gmailExtend(model);
+			}
+		},
+		facebookExtend: function(model) {
+			_.extend(model, 
+				{
+					date: (function() {
+						model.date *= 1000
+						if( model.date ) {
+							var moment_stringA, moment_stringB;
+							moment_stringA = moment(model.date).startOf('day').fromNow();
+							moment_stringB = moment(model.date).format("MMM Do YY");
+						}
+						return moment_stringB + ' (' + moment_stringA + ')';
+					}()),
 
+					msg_url: null,
+					//JsRender template workaround
+					first_recipient_name: null,
+					first_recipient_email: "There are no recipients for this message.",
+					from_name: model.from.name,
+					from_email: null,
+					restof_recipients: null
+					});
+		},
+		twitterExtend: function(model) {
+
+		},
+		gmailExtend: function(model) {
+			_.extend(model, 
+				{
+					date: (function() {
+						if( model.date ) {
+							var moment_stringA, moment_stringB;
+							moment_stringA = moment(model.date).startOf('day').fromNow();
+							moment_stringB = moment(model.date).format("MMM Do YY");
+						}
+						return moment_stringB + ' (' + moment_stringA + ')';
+					}()),
+
+					msg_url: (function() {
+						var gmail_url = (document.location.href).match(/.*#/gi);
+						gmail_url += 'inbox/' + model.msgid;
+						var html_string = '<a href="" target="_blank" onclick="window.open(\'' + gmail_url + '\')">Show Original</a>';
+						return html_string;
+					}()),
+
+					//JsRender template workaround
+					first_recipient_name: model.recipients[0].name,
+					first_recipient_email: model.recipients[0].email,
+					from_name: model.from.name,
+					from_email: model.from.email,
+					restof_recipients: (function() {
+							if ( model.recipients.length > 1 ) {
+								var recipient_string = '', nameOf, emailOf;
+								var html_string;
+								model.recipients.splice(0,1);
+								for(var i = 0; i < model.recipients.length; i++ ) {
+									nameOf = model.recipients[i].name;
+									emailOf = model.recipients[i].email;
+									recipient_string += nameOf + ' ' +  emailOf + '&#13;&#10;';
+								}
+								html_string = "<div class='lde-popup-recieved-hint hint hint--bottom' data-hint='" + recipient_string +  "'>...See more</div>";
+								return html_string;
+							}
+							else
+								return null;
+					}())
+				});
+		},
 		// Display the popup
 		display: function() {
 			log.debug( 'LDEngine.sidebar.popup.display()' );
@@ -716,15 +768,12 @@ var LDEngine = {
 				}
 
 				// Show the loading spinner and hide inner content
-				// This code is really problematic so dont uncomment it
-
-				/*$.link.popupTemplate($('#lde-popup'), {
+				$.link.popupTemplate($('#lde-popup'), {
 					model: { 
 							from: { name: "loading popup..." }
 						}
 				});
-				$('.lde-popup-content').hide();*/
-
+				$('.lde-popup-content').hide();
 			} else {
 				// Retemplate
 				$.link.popupTemplate($('#lde-popup'), LDEngine.popup.model);
@@ -732,7 +781,6 @@ var LDEngine = {
 				$('.lde-ajax-spinner').hide();
 				$('.lde-popup-content').show();
 			}
-
 			// Hook up the close button
 			$('.lde-popup-close-button').click(LDEngine.popup.close);
 		},
