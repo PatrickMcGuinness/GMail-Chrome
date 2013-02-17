@@ -422,8 +422,7 @@ var LDEngine = {
 									return;
 							}
 							_.map(messageSnippets, function(messageSnippet) {
-								if( !messageSnippet.from.name )
-									messageSnippet.from.name = messageSnippet.from.email;
+								if( !messageSnippet.from.name ) messageSnippet.from.name = messageSnippet.from.email;
 								return _.extend(messageSnippet, {
 									date: messageSnippet.date && new Date(messageSnippet.date).toString('MMM d yy'),
 									from: _.extend(messageSnippet.from, {
@@ -620,8 +619,7 @@ var LDEngine = {
 					
 					//Perform operations on Snippets
 					_.map(searchSnippets, function(searchSnippet) {
-							if( !searchSnippet.from.name )
-							searchSnippet.from.name = searchSnippet.from.email;
+							if( !searchSnippet.from.name )	searchSnippet.from.name = searchSnippet.from.email;
 							else 
 						    {}	
 						return _.extend(searchSnippet, {
