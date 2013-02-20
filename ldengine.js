@@ -410,7 +410,7 @@ var LDEngine = {
 						threadString = threadString.split('\x2f');
 						threadId = parseInt(threadString[1], 16);
 					}
-					else { 
+					else {} 
 			//		Gmail.scrapeMessageId(url, function( messageId) {
 						
 						messageApiObj.Message.thrid = threadId;
@@ -425,7 +425,7 @@ var LDEngine = {
 							}
 							console.log(messageSnippets);
 							_.map(messageSnippets, function(messageSnippet) {
-								if(messageSnippet.from) {	if( !messageSnippet.from.name ) messageSnippet.from.name = messageSnippet.from.email; }
+								//if(messageSnippet.from) {	if( !messageSnippet.from.name )  {messageSnippet.from.name = messageSnippet.from.email;} }
 								return _.extend(messageSnippet, {
 									date: messageSnippet.date && new Date(messageSnippet.date).toString('MMM d yy'),
 									from: _.extend(messageSnippet.from, {
