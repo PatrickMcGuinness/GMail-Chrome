@@ -400,15 +400,18 @@ var LDEngine = {
 			Gmail.message.scrape($el, function(err, messageApiObj) {
 			
 			// Send the scrapped message to the server
-					//hack	
+					//hack
+					
 					var currentUrl = document.location.href;
 					var threadId;
-		
+		console.log(" thread url " + currentUrl);
 					var threadArray = currentUrl.match(/\x23.*\x2f.*/i);
-					var threadString = threadArray.join();
-					threadString = threadString.split('\x2f');
-					threadId = parseInt(threadString[1], 16);
-
+		console.log(" thread array " + threadArray);
+					if (threadArray) {
+						var threadString = threadArray.join();
+						threadString = threadString.split('\x2f');
+						threadId = parseInt(threadString[1], 16);
+					}
 			//		Gmail.scrapeMessageId(url, function( messageId) {
 						
 						messageApiObj.Message.thrid = threadId;
@@ -421,6 +424,7 @@ var LDEngine = {
 									LDEngine.sidebar.stopLoadingSpinner();
 									return;
 							}
+							console.log(messageSnippets);
 							_.map(messageSnippets, function(messageSnippet) {
 								if( !messageSnippet.from.name ) messageSnippet.from.name = messageSnippet.from.email;
 								return _.extend(messageSnippet, {
@@ -707,9 +711,28 @@ var LDEngine = {
 					});
 		},
 		twitterExtend: function(model) {
+			_.extend(model, 
+				{
+					date: (function() {
+						model.date *= 1000
+						if( model.date ) {
+							var moment_stringA, moment_stringB;
+							moment_stringA = moment(model.date).startOf('day').fromNow();
+							moment_stringB = moment(model.date).format("MMM Do YY");
+						}
+						return moment_stringB + ' (' + moment_stringA + ')';
+					}()),
 
+					msg_url: null,
+					//JsRender template workaround
+					first_recipient_name: null,
+					first_recipient_email: "There are no recipients for this message.",
+					from_name: model.from.name,
+					from_email: null,
+					restof_recipients: null
+					});
 		},
-		gmailExtend: function(model) {
+		gmailExtend: function(model) { console.log("model"); console.log(model);
 			_.extend(model, 
 				{
 					date: (function() {
@@ -729,8 +752,8 @@ var LDEngine = {
 					}()),
 
 					//JsRender template workaround
-					first_recipient_name: model.recipients[0].name,
-					first_recipient_email: model.recipients[0].email,
+					first_recipient_name: (model ? model.recipients[0].name : ''),
+					first_recipient_email: (model ? model.recipients[0].email : ''),
 					from_name: model.from.name,
 					from_email: model.from.email,
 					restof_recipients: (function() {
