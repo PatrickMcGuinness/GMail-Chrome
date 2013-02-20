@@ -404,14 +404,13 @@ var LDEngine = {
 					
 					var currentUrl = document.location.href;
 					var threadId;
-		console.log(" thread url " + currentUrl);
 					var threadArray = currentUrl.match(/\x23.*\x2f.*/i);
-		console.log(" thread array " + threadArray);
 					if (threadArray) {
 						var threadString = threadArray.join();
 						threadString = threadString.split('\x2f');
 						threadId = parseInt(threadString[1], 16);
 					}
+					else { 
 			//		Gmail.scrapeMessageId(url, function( messageId) {
 						
 						messageApiObj.Message.thrid = threadId;
@@ -426,7 +425,7 @@ var LDEngine = {
 							}
 							console.log(messageSnippets);
 							_.map(messageSnippets, function(messageSnippet) {
-								if( !messageSnippet.from.name ) messageSnippet.from.name = messageSnippet.from.email;
+								if(messageSnippet.from) {	if( !messageSnippet.from.name ) messageSnippet.from.name = messageSnippet.from.email; }
 								return _.extend(messageSnippet, {
 									date: messageSnippet.date && new Date(messageSnippet.date).toString('MMM d yy'),
 									from: _.extend(messageSnippet.from, {
@@ -666,6 +665,8 @@ var LDEngine = {
 				id: id,
 				itemtype: 'message'
 			}, function(model) {
+				console.log("popup's model");
+				console.log(model);
 				//check what message is returned and extend model accordingly
 				LDEngine.popup.typeOfMessage(model);
 				
@@ -675,12 +676,12 @@ var LDEngine = {
 		},
 		
 		typeOfMessage: function(model) {
-			var serviceName = model.appData_serviceName;
+			var serviceName = model.appData_serviceName || model.type;
 			switch (serviceName) {
 				case 'Facebook':
 					LDEngine.popup.facebookExtend(model);
 				break;
-				case 'Twitter':
+				case 'Tweet':
 					LDEngine.popup.twitterExtend(model);
 				break;
 				default:
@@ -732,7 +733,7 @@ var LDEngine = {
 					restof_recipients: null
 					});
 		},
-		gmailExtend: function(model) { console.log("model"); console.log(model);
+		gmailExtend: function(model) { 
 			_.extend(model, 
 				{
 					date: (function() {
@@ -752,8 +753,8 @@ var LDEngine = {
 					}()),
 
 					//JsRender template workaround
-					first_recipient_name: (model ? model.recipients[0].name : ''),
-					first_recipient_email: (model ? model.recipients[0].email : ''),
+					first_recipient_name: model.recipients[0].name,
+					first_recipient_email: model.recipients[0].email,
 					from_name: model.from.name,
 					from_email: model.from.email,
 					restof_recipients: (function() {
