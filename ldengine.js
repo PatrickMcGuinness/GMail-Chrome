@@ -639,7 +639,6 @@ var LDEngine = {
 							LDEngine.sidebar.renderSnippets(messageNull);
 							return;
 					};
-						
 					//Perform operations on Snippets
 					_.map(searchSnippets, function(searchSnippet) {
 							if( !searchSnippet.from.name )	searchSnippet.from.name = searchSnippet.from.email;
