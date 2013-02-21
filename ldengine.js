@@ -547,19 +547,27 @@ var LDEngine = {
 			$(Gmail.selectors.sidebar).find(Gmail.selectors.userbar).remove();
 			
 			for ( var each in messageSnippets ) {
+				console.log(" ItemType for AppServiceIcon ");
+				console.log(messageSnippets[each].itemType);
 				switch(messageSnippets[each].itemType) {
 				case 'FacebookStatusMessage':
 				case 'Facebook':
 					var facebookURL = chrome.extension.getURL('facebook.png');
 					messageSnippets[each].appIcon = '<img src=\"' + facebookURL + '\">';
+					console.log("Facebook");
 					break;
-				case 'Twitter':
+				case 'Tweet':
 					var twitterURL = chrome.extension.getURL('Twitter.png');
 					messageSnippets[each].appIcon = '<img src=\"' + twitterURL + '\">';
+					console.log("Tweet");
 					break;
-				default:
+				case 'email':
 					var gmailURL = chrome.extension.getURL('gmail.png');
 					messageSnippets[each].appIcon = '<img src=\"' + gmailURL + '\">';
+					console.log("email");
+					break;
+				default:
+					console.log("default case");
 				}
 
 			}
