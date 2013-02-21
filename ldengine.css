@@ -129,6 +129,12 @@ input[type="text"] {
 	padding-bottom: 5px;
 	margin-left: 25px;
 	text-decoration: none;
+	color: #349C00;
+	opacity: 0.8;
+}
+
+.lde-links-account:hover {
+	color: #4CE600;
 }
 
 .lde-links-mailto {
@@ -138,6 +144,12 @@ input[type="text"] {
 	padding-bottom: 5px;
 	margin-left: 0px;
 	text-decoration: none;
+	color: #349C00;
+	opacity: 0.8;
+}
+
+.lde-links-mailto:hover {
+	color: #4CE600;
 }
 
 .lde-links-faq {
@@ -147,7 +159,12 @@ input[type="text"] {
 	padding-bottom: 5px;
 	margin-left: 0px;
 	text-decoration: none;
+	color: #349C00;
+	opacity: 0.8;
+}
 
+.lde-links-faq:hover {
+	color: #4CE600;
 }
 
 .lde-links-store {
@@ -157,6 +174,12 @@ input[type="text"] {
 	padding-bottom: 5px;
 	margin-left: 0px;
 	text-decoration: none;
+	color: #349C00;
+	opacity: 0.8;
+}
+
+.lde-links-store:hover {
+	color: #4CE600;
 }
 
 .lde-search-info {
@@ -173,6 +196,7 @@ input[type="text"] {
  * Text contained within the email body.
  */
 .lde-text {
+	margin-top: -15px;
 	font-size: 80%;
 	word-break: hyphenate;
 }
