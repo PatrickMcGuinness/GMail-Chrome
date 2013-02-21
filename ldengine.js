@@ -563,10 +563,11 @@ var LDEngine = {
 					messageSnippets[each].appIcon = '<img width=20 height=20 src=\"' + gmailURL + '\">';
 					break;
 				default:
-					console.log("default case");
 				}
 
 			}
+
+			
 
 			// Add the related emails to the sidebar
 			$.link.sidebarTemplate(".lde-related-emails", messageSnippets);
@@ -574,8 +575,13 @@ var LDEngine = {
 			if (!$('.lde-related-emails').length) {
 				LDEngine.sidebar.append();
 			}
-			
-						// Ellipsize the related email snippets
+
+			// Render the 'no messages found' message	
+			if(messageSnippets.cssFlag == '1') {
+				var test = $('.lde-text').css("margin-top","15px");
+			}
+
+			// Ellipsize the related email snippets
 			$('.lde-email-result').dotdotdot();
 
 			// Bind click events to message snippets
@@ -583,7 +589,8 @@ var LDEngine = {
 				var messageSnippet = $($('.lde-email-result')[i]);
 				messageSnippet.attr('data-id', messageSnippets[i].id);
 				messageSnippet.click(LDEngine.sidebar.selectSnippet);
-
+			
+			
 				
 				// Replace \n's with <br>'s
 				var snippetContentEl = messageSnippet.find(".lde-text");
@@ -634,7 +641,8 @@ var LDEngine = {
 			},function(searchSnippets) {
 					if (searchSnippets.length === 0) {
 							messageNull = { 
-								from : { name : null }, 
+								from : { name : null },
+								cssFlag: 1,
 								snippet : "Nothing related was found, try again?" };
 							LDEngine.sidebar.renderSnippets(messageNull);
 							return;
