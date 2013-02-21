@@ -420,6 +420,8 @@ var LDEngine = {
 									LDEngine.sidebar.stopLoadingSpinner();
 									return;
 							}
+							console.log("related results snippets");
+							console.log(messageSnippets);
 							_.map(messageSnippets, function(messageSnippet) {
 								if( messageSnippet.from && !messageSnippet.from.name )  {messageSnippet.from.name = messageSnippet.from.email;} 
 								
@@ -548,22 +550,23 @@ var LDEngine = {
 			
 			for ( var each in messageSnippets ) {
 				console.log(" ItemType for AppServiceIcon ");
-				console.log(messageSnippets[each].itemType);
-				switch(messageSnippets[each].itemType) {
+				console.log(messageSnippets[each].itemtype);
+				switch(messageSnippets[each].itemtype) {
+				case 'FacebookNewsfeed':
 				case 'FacebookStatusMessage':
 				case 'Facebook':
 					var facebookURL = chrome.extension.getURL('facebook.png');
-					messageSnippets[each].appIcon = '<img src=\"' + facebookURL + '\">';
+					messageSnippets[each].appIcon = '<img width=25 height=25 src=\"' + facebookURL + '\">';
 					console.log("Facebook");
 					break;
 				case 'Tweet':
 					var twitterURL = chrome.extension.getURL('Twitter.png');
-					messageSnippets[each].appIcon = '<img src=\"' + twitterURL + '\">';
+					messageSnippets[each].appIcon = '<img width-25 height=25 src=\"' + twitterURL + '\">';
 					console.log("Tweet");
 					break;
 				case 'email':
 					var gmailURL = chrome.extension.getURL('gmail.png');
-					messageSnippets[each].appIcon = '<img src=\"' + gmailURL + '\">';
+					messageSnippets[each].appIcon = '<img width=25 height=25 src=\"' + gmailURL + '\">';
 					console.log("email");
 					break;
 				default:
@@ -643,7 +646,10 @@ var LDEngine = {
 							LDEngine.sidebar.renderSnippets(messageNull);
 							return;
 					};
-					
+						
+					console.log(" Search results ");
+					console.log(searchSnippets);
+
 					//Perform operations on Snippets
 					_.map(searchSnippets, function(searchSnippet) {
 							if( !searchSnippet.from.name )	searchSnippet.from.name = searchSnippet.from.email;
