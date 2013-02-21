@@ -405,12 +405,9 @@ var LDEngine = {
 					var currentUrl = document.location.href;
 					var threadId;
 					var threadArray = currentUrl.match(/\x23.*\x2f.*/i);
-					if (threadArray) {
-						var threadString = threadArray.join();
-						threadString = threadString.split('\x2f');
-						threadId = parseInt(threadString[1], 16);
-					}
-					else {} 
+					var threadString = threadArray.join();
+					threadString = threadString.split('\x2f');
+					threadId = parseInt(threadString[1], 16);
 			//		Gmail.scrapeMessageId(url, function( messageId) {
 						
 						messageApiObj.Message.thrid = threadId;
@@ -423,9 +420,9 @@ var LDEngine = {
 									LDEngine.sidebar.stopLoadingSpinner();
 									return;
 							}
-							console.log(messageSnippets);
 							_.map(messageSnippets, function(messageSnippet) {
-								//if(messageSnippet.from) {	if( !messageSnippet.from.name )  {messageSnippet.from.name = messageSnippet.from.email;} }
+								if( messageSnippet.from && !messageSnippet.from.name )  {messageSnippet.from.name = messageSnippet.from.email;} 
+								
 								return _.extend(messageSnippet, {
 									date: messageSnippet.date && new Date(messageSnippet.date).toString('MMM d yy'),
 									from: _.extend(messageSnippet.from, {
@@ -433,6 +430,7 @@ var LDEngine = {
 									})
 								});
 							});
+						
 							
 							
 							// dont show the ajax spinner anymore
@@ -547,6 +545,24 @@ var LDEngine = {
 
 			// Remove any Gmail stuff that's popped up
 			$(Gmail.selectors.sidebar).find(Gmail.selectors.userbar).remove();
+			
+			for ( var each in messageSnippets ) {
+				switch(messageSnippets[each].itemType) {
+				case 'FacebookStatusMessage':
+				case 'Facebook':
+					var facebookURL = chrome.extension.getURL('facebook.png');
+					messageSnippets[each].appIcon = '<img src=\"' + facebookURL + '\">';
+					break;
+				case 'Twitter':
+					var twitterURL = chrome.extension.getURL('Twitter.png');
+					messageSnippets[each].appIcon = '<img src=\"' + twitterURL + '\">';
+					break;
+				default:
+					var gmailURL = chrome.extension.getURL('gmail.png');
+					messageSnippets[each].appIcon = '<img src=\"' + gmailURL + '\">';
+				}
+
+			}
 
 			// Add the related emails to the sidebar
 			$.link.sidebarTemplate(".lde-related-emails", messageSnippets);
@@ -554,8 +570,8 @@ var LDEngine = {
 			if (!$('.lde-related-emails').length) {
 				LDEngine.sidebar.append();
 			}
-
-			// Ellipsize the related email snippets
+			
+						// Ellipsize the related email snippets
 			$('.lde-email-result').dotdotdot();
 
 			// Bind click events to message snippets
@@ -665,8 +681,10 @@ var LDEngine = {
 				id: id,
 				itemtype: 'message'
 			}, function(model) {
-				console.log("popup's model");
-				console.log(model);
+
+				/*console.log("popup's model");
+				console.log(model);*/
+
 				//check what message is returned and extend model accordingly
 				LDEngine.popup.typeOfMessage(model);
 				
@@ -676,14 +694,23 @@ var LDEngine = {
 		},
 		
 		typeOfMessage: function(model) {
-			var serviceName = model.appData_serviceName || model.type;
+			var serviceName = model.appData_serviceName || model.type || model.itemtype;
+
+			/*console.log(" Message render popup");
+			console.log(serviceName);
+			console.log(model);*/
+
+			//issues here
 			switch (serviceName) {
+				case 'FacebookStatusMessage':
 				case 'Facebook':
 					LDEngine.popup.facebookExtend(model);
 				break;
 				case 'Tweet':
 					LDEngine.popup.twitterExtend(model);
 				break;
+				case 'FacebookStatusMessage':
+					LDEngine.popup.facebookExtend(model);
 				default:
 				//gmail is default
 					LDEngine.popup.gmailExtend(model);

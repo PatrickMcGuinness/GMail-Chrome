@@ -41,7 +41,10 @@
     "close_message.gif",
     "image_anonymousLarge@2x.png",
     "logo_engine@2x.png",
-	"search_glass.png"
+	"search_glass.png",
+	"gmail.png",
+	"facebook.png",
+	"Twitter.png"
   ],
   "options_page": "options.html"
 }
