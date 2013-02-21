@@ -552,15 +552,15 @@ var LDEngine = {
 				case 'FacebookStatusMessage':
 				case 'Facebook':
 					var facebookURL = chrome.extension.getURL('facebook.png');
-					messageSnippets[each].appIcon = '<img width=25 height=25 src=\"' + facebookURL + '\">';
+					messageSnippets[each].appIcon = '<img width=20 height=20 src=\"' + facebookURL + '\">';
 					break;
 				case 'Tweet':
 					var twitterURL = chrome.extension.getURL('Twitter.png');
-					messageSnippets[each].appIcon = '<img width-25 height=25 src=\"' + twitterURL + '\">';
+					messageSnippets[each].appIcon = '<img width-20 height=20 src=\"' + twitterURL + '\">';
 					break;
 				case 'email':
 					var gmailURL = chrome.extension.getURL('gmail.png');
-					messageSnippets[each].appIcon = '<img width=25 height=25 src=\"' + gmailURL + '\">';
+					messageSnippets[each].appIcon = '<img width=20 height=20 src=\"' + gmailURL + '\">';
 					break;
 				default:
 					console.log("default case");
