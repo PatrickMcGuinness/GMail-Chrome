@@ -1,6 +1,6 @@
 {
   "name": "LD Engine",
-  "version": "13.2.19",
+  "version": "13.2.21",
   "description": "Imagine a world where you didn't hate your email.",
   "permissions": [
   ],
@@ -40,7 +40,10 @@
     "close_message.gif",
     "image_anonymousLarge@2x.png",
     "logo_engine@2x.png",
-	"search_glass.png"
+	"search_glass.png",
+	"gmail.png",
+	"facebook.png",
+	"Twitter.png"
   ],
   "options_page": "options.html"
 }

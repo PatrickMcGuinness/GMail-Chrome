@@ -398,15 +398,14 @@ var LDEngine = {
 			Gmail.message.scrape($el, function(err, messageApiObj) {
 			
 			// Send the scrapped message to the server
-					//hack	
+					//hack
+					
 					var currentUrl = document.location.href;
 					var threadId;
-		
 					var threadArray = currentUrl.match(/\x23.*\x2f.*/i);
 					var threadString = threadArray.join();
 					threadString = threadString.split('\x2f');
 					threadId = parseInt(threadString[1], 16);
-
 			//		Gmail.scrapeMessageId(url, function( messageId) {
 						
 						messageApiObj.Message.thrid = threadId;
@@ -420,8 +419,8 @@ var LDEngine = {
 									return;
 							}
 							_.map(messageSnippets, function(messageSnippet) {
-								if( !messageSnippet.from.name )
-									messageSnippet.from.name = messageSnippet.from.email;
+								if( messageSnippet.from && !messageSnippet.from.name )  {messageSnippet.from.name = messageSnippet.from.email;} 
+								
 								return _.extend(messageSnippet, {
 									date: messageSnippet.date && new Date(messageSnippet.date).toString('MMM d yy'),
 									from: _.extend(messageSnippet.from, {
@@ -429,6 +428,7 @@ var LDEngine = {
 									})
 								});
 							});
+						
 							
 							
 							// dont show the ajax spinner anymore
@@ -543,12 +543,40 @@ var LDEngine = {
 
 			// Remove any Gmail stuff that's popped up
 			$(Gmail.selectors.sidebar).find(Gmail.selectors.userbar).remove();
+			
+			for ( var each in messageSnippets ) {
+				switch(messageSnippets[each].itemtype) {
+				case 'FacebookNewsfeed':
+				case 'FacebookStatusMessage':
+				case 'Facebook':
+					var facebookURL = chrome.extension.getURL('facebook.png');
+					messageSnippets[each].appIcon = '<img width=20 height=20 src=\"' + facebookURL + '\">';
+					break;
+				case 'Tweet':
+					var twitterURL = chrome.extension.getURL('Twitter.png');
+					messageSnippets[each].appIcon = '<img width-20 height=20 src=\"' + twitterURL + '\">';
+					break;
+				case 'email':
+					var gmailURL = chrome.extension.getURL('gmail.png');
+					messageSnippets[each].appIcon = '<img width=20 height=20 src=\"' + gmailURL + '\">';
+					break;
+				default:
+				}
+
+			}
+
+			
 
 			// Add the related emails to the sidebar
 			$.link.sidebarTemplate(".lde-related-emails", messageSnippets);
 
 			if (!$('.lde-related-emails').length) {
 				LDEngine.sidebar.append();
+			}
+
+			// Render the 'no messages found' message	
+			if(messageSnippets.cssFlag == '1') {
+				var test = $('.lde-text').css("margin-top","15px");
 			}
 
 			// Ellipsize the related email snippets
@@ -609,16 +637,15 @@ var LDEngine = {
 			},function(searchSnippets) {
 					if (searchSnippets.length === 0) {
 							messageNull = { 
-								from : { name : null }, 
+								from : { name : null },
+								cssFlag: 1,
 								snippet : "Nothing related was found, try again?" };
 							LDEngine.sidebar.renderSnippets(messageNull);
 							return;
 					};
-					
 					//Perform operations on Snippets
 					_.map(searchSnippets, function(searchSnippet) {
-							if( !searchSnippet.from.name )
-							searchSnippet.from.name = searchSnippet.from.email;
+							if( !searchSnippet.from.name )	searchSnippet.from.name = searchSnippet.from.email;
 							else 
 						    {}	
 						return _.extend(searchSnippet, {
@@ -661,6 +688,10 @@ var LDEngine = {
 				id: id,
 				itemtype: 'message'
 			}, function(model) {
+
+				/*console.log("popup's model");
+				console.log(model);*/
+
 				//check what message is returned and extend model accordingly
 				LDEngine.popup.typeOfMessage(model);
 				
@@ -670,14 +701,23 @@ var LDEngine = {
 		},
 		
 		typeOfMessage: function(model) {
-			var serviceName = model.appData_serviceName;
+			var serviceName = model.appData_serviceName || model.type || model.itemtype;
+
+			/*console.log(" Message render popup");
+			console.log(serviceName);
+			console.log(model);*/
+
+			//issues here
 			switch (serviceName) {
+				case 'FacebookStatusMessage':
 				case 'Facebook':
 					LDEngine.popup.facebookExtend(model);
 				break;
-				case 'Twitter':
+				case 'Tweet':
 					LDEngine.popup.twitterExtend(model);
 				break;
+				case 'FacebookStatusMessage':
+					LDEngine.popup.facebookExtend(model);
 				default:
 				//gmail is default
 					LDEngine.popup.gmailExtend(model);
@@ -706,9 +746,28 @@ var LDEngine = {
 					});
 		},
 		twitterExtend: function(model) {
+			_.extend(model, 
+				{
+					date: (function() {
+						model.date *= 1000
+						if( model.date ) {
+							var moment_stringA, moment_stringB;
+							moment_stringA = moment(model.date).startOf('day').fromNow();
+							moment_stringB = moment(model.date).format("MMM Do YY");
+						}
+						return moment_stringB + ' (' + moment_stringA + ')';
+					}()),
 
+					msg_url: null,
+					//JsRender template workaround
+					first_recipient_name: null,
+					first_recipient_email: "There are no recipients for this message.",
+					from_name: model.from.name,
+					from_email: null,
+					restof_recipients: null
+					});
 		},
-		gmailExtend: function(model) {
+		gmailExtend: function(model) { 
 			_.extend(model, 
 				{
 					date: (function() {
