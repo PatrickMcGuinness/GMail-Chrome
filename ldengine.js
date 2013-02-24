@@ -173,9 +173,8 @@ var Gmail = {
 						// body: $el.find(Gmail.selectors.message.body).last().text().replace(/\n/g, ' '),
 						from: $el.find('.gD').attr('email'),
 						to: recipientEmails,
-						mgid: 'null',
-						thrid: 'null'
-						// TODO: cc, bcc
+						thrid: 'null',
+						mgid: 'null'
 					}
 				}; 
 				log.ifDebugEnabled( function() {
@@ -212,6 +211,16 @@ var Gmail = {
 		// POST the message object to the server
 		post: function(messageApiObj, callback) {
 			
+			var error = function(jqXHR, textStatus, errorThrown) {
+				log.ifDebugEnabled( function() {
+					debug.log( 'Something went wrong posting to the server : ' + new Date() );
+					debug.log( 'Status' + textStatus );
+					debug.log( '\n \n' + errorThrown);
+					debug.log( 'Request Object');
+					debug.log( jqXHR );
+				});
+			};
+
 			// Post the message to the server and get related snippets
 			log.ifDebugEnabled( function() {
 				debug.log( 'Posting message back to ' + API_URL + "/message/relatedMessages" );
@@ -221,7 +230,8 @@ var Gmail = {
 				type: 'POST',
 				data: messageApiObj,
 				success: callback,
-				dataType: 'json'
+				dataType: 'json',
+				error: error
 			});
 		}
 	},
@@ -412,7 +422,10 @@ var LDEngine = {
 						
 						messageApiObj.Message.thrid = threadId;
 						
-						Gmail.message.post(messageApiObj, function(messageSnippets, textStatus) { // afterwards
+						Gmail.message.post(messageApiObj, function(messageSnippets, textStatus) { 
+							
+							log.debug( 'Post from /relatedMessages returned, textStatus is ');
+							log.debug( textStatus );
 
 							// If no snippets are returned, render the noSnippets view and stop the ajax spinner.
 							if (messageSnippets.length === 0) {
