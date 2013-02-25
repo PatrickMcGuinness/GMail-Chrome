@@ -410,17 +410,14 @@ var LDEngine = {
 			Gmail.message.scrape($el, function(err, messageApiObj) {
 			
 			// Send the scrapped message to the server
-					//hack
 					
+					//make up the thread ID
 					var currentUrl = document.location.href;
 					var threadId;
-					var threadArray = currentUrl.match(/\x23.*\x2f.*/i);
-					var threadString = threadArray.join();
-					threadString = threadString.split('\x2f');
-					threadId = parseInt(threadString[1], 16);
-			//		Gmail.scrapeMessageId(url, function( messageId) {
-						
-						messageApiObj.Message.thrid = threadId;
+					var threadArray = currentUrl.match(/[^\x2f]*$/i);
+					threadId = parseInt(threadArray, 16);
+					
+					messageApiObj.Message.thrid = threadId;
 						
 						Gmail.message.post(messageApiObj, function(messageSnippets, textStatus) { 
 							
