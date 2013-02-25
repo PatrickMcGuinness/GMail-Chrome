@@ -741,7 +741,7 @@ var LDEngine = {
 			_.extend(model, 
 				{
 					date: (function() {
-						model.date *= 1000
+						//model.date *= 1000
 						if( model.date ) {
 							var moment_stringA, moment_stringB;
 							moment_stringA = moment(model.date).startOf('day').fromNow();
@@ -763,7 +763,7 @@ var LDEngine = {
 			_.extend(model, 
 				{
 					date: (function() {
-						model.date *= 1000
+						//model.date *= 1000
 						if( model.date ) {
 							var moment_stringA, moment_stringB;
 							moment_stringA = moment(model.date).startOf('day').fromNow();
