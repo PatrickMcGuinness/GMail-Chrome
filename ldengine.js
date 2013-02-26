@@ -703,8 +703,6 @@ var LDEngine = {
 				itemtype: 'message'
 			}, function(model) {
 
-				/*console.log("popup's model");
-				console.log(model);*/
 
 				//check what message is returned and extend model accordingly
 				LDEngine.popup.typeOfMessage(model);
@@ -716,10 +714,6 @@ var LDEngine = {
 		
 		typeOfMessage: function(model) {
 			var serviceName = model.appData_serviceName || model.type || model.itemtype;
-
-			/*console.log(" Message render popup");
-			console.log(serviceName);
-			console.log(model);*/
 
 			//issues here
 			switch (serviceName) {
@@ -741,7 +735,6 @@ var LDEngine = {
 			_.extend(model, 
 				{
 					date: (function() {
-						model.date *= 1000
 						if( model.date ) {
 							var moment_stringA, moment_stringB;
 							moment_stringA = moment(model.date).startOf('day').fromNow();
@@ -763,7 +756,6 @@ var LDEngine = {
 			_.extend(model, 
 				{
 					date: (function() {
-						model.date *= 1000
 						if( model.date ) {
 							var moment_stringA, moment_stringB;
 							moment_stringA = moment(model.date).startOf('day').fromNow();
