@@ -173,9 +173,8 @@ var Gmail = {
 						// body: $el.find(Gmail.selectors.message.body).last().text().replace(/\n/g, ' '),
 						from: $el.find('.gD').attr('email'),
 						to: recipientEmails,
-						mgid: 'null',
-						thrid: 'null'
-						// TODO: cc, bcc
+						thrid: 'null',
+						mgid: 'null'
 					}
 				}; 
 				log.ifDebugEnabled( function() {
@@ -212,6 +211,16 @@ var Gmail = {
 		// POST the message object to the server
 		post: function(messageApiObj, callback) {
 			
+			var error = function(jqXHR, textStatus, errorThrown) {
+				log.ifDebugEnabled( function() {
+					debug.log( 'Something went wrong posting to the server : ' + new Date() );
+					debug.log( 'Status' + textStatus );
+					debug.log( '\n \n' + errorThrown);
+					debug.log( 'Request Object');
+					debug.log( jqXHR );
+				});
+			};
+
 			// Post the message to the server and get related snippets
 			log.ifDebugEnabled( function() {
 				debug.log( 'Posting message back to ' + API_URL + "/message/relatedMessages" );
@@ -221,7 +230,8 @@ var Gmail = {
 				type: 'POST',
 				data: messageApiObj,
 				success: callback,
-				dataType: 'json'
+				dataType: 'json',
+				error: error
 			});
 		}
 	},
@@ -398,19 +408,19 @@ var LDEngine = {
 			Gmail.message.scrape($el, function(err, messageApiObj) {
 			
 			// Send the scrapped message to the server
-					//hack
 					
+					//make up the thread ID
 					var currentUrl = document.location.href;
 					var threadId;
-					var threadArray = currentUrl.match(/\x23.*\x2f.*/i);
-					var threadString = threadArray.join();
-					threadString = threadString.split('\x2f');
-					threadId = parseInt(threadString[1], 16);
-			//		Gmail.scrapeMessageId(url, function( messageId) {
+					var threadArray = currentUrl.match(/[^\x2f]*$/i);
+					threadId = parseInt(threadArray, 16);
+					
+					messageApiObj.Message.thrid = threadId;
 						
-						messageApiObj.Message.thrid = threadId;
-						
-						Gmail.message.post(messageApiObj, function(messageSnippets, textStatus) { // afterwards
+						Gmail.message.post(messageApiObj, function(messageSnippets, textStatus) { 
+							
+							log.debug( 'Post from /relatedMessages returned, textStatus is ');
+							log.debug( textStatus );
 
 							// If no snippets are returned, render the noSnippets view and stop the ajax spinner.
 							if (messageSnippets.length === 0) {
@@ -689,8 +699,6 @@ var LDEngine = {
 				itemtype: 'message'
 			}, function(model) {
 
-				/*console.log("popup's model");
-				console.log(model);*/
 
 				//check what message is returned and extend model accordingly
 				LDEngine.popup.typeOfMessage(model);
@@ -702,10 +710,6 @@ var LDEngine = {
 		
 		typeOfMessage: function(model) {
 			var serviceName = model.appData_serviceName || model.type || model.itemtype;
-
-			/*console.log(" Message render popup");
-			console.log(serviceName);
-			console.log(model);*/
 
 			//issues here
 			switch (serviceName) {
@@ -727,7 +731,6 @@ var LDEngine = {
 			_.extend(model, 
 				{
 					date: (function() {
-						model.date *= 1000
 						if( model.date ) {
 							var moment_stringA, moment_stringB;
 							moment_stringA = moment(model.date).startOf('day').fromNow();
@@ -749,7 +752,6 @@ var LDEngine = {
 			_.extend(model, 
 				{
 					date: (function() {
-						model.date *= 1000
 						if( model.date ) {
 							var moment_stringA, moment_stringB;
 							moment_stringA = moment(model.date).startOf('day').fromNow();
