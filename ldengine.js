@@ -613,6 +613,8 @@ var LDEngine = {
 			log.debug( 'LDEngine.sidebar.selectSnippet()' );
 
 			var id = $(e.currentTarget).attr('data-id');
+			id = id.replace("text","html");
+
 
 			// Fetch contents of popup
 			LDEngine.popup.fetch(id);
