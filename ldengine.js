@@ -32,14 +32,14 @@ $(function() {
 	var checkSidebarRetry;
 
 	// When sidebar can we safely appended, immediately append it (spam until it's possible, then do it)
-	throttledWaitUntil(LDEngine.sidebar.isReadyToBeAppended, LDEngine.sidebar.init, 25);
+	throttledWaitUntil(LDEngine.sidebar.isReadyToBeAppended, LDEngine.sidebar.init, 1000);
 
 	// Start monitoring changes to browser history
 	$(window).bind("popstate", function(event) {
 		log.debug( 'Window popstate' );
 		// On popstate, try to initialize the sidebar again
 
-			waitUntil(LDEngine.sidebar.isReadyToBeAppended, LDEngine.sidebar.init, 25);
+			waitUntil(LDEngine.sidebar.isReadyToBeAppended, LDEngine.sidebar.init, 1000);
 	});
 
 	// Create a deferred object to wrap around a call to Chrome's
@@ -54,7 +54,7 @@ $(function() {
 			// For now, to avoid any weird issues w/ people who already installed
 			// the existing version, hard-code the production host
 			// API_URL = "apps.ldengine.com";
-			API_URL = items.ldengine_api_url || "https://apps.ldengine.com";
+			API_URL = items.ldengine_api_url || "https://preview.engine.co";
 				if( API_URL.indexOf( "http" ) < 0 )
 				 API_URL = "https://" + API_URL;
 
@@ -320,7 +320,9 @@ var LDEngine = {
 
 		// Returns whether the sidebar can be appended safely
 		isReadyToBeAppended: function() {
-			var isReady = templatesReady && $(Gmail.selectors.sidebar).length;
+			var threadArray = (document.location.href).match(/[^\x2f]*$/i),
+				threadId = parseInt(threadArray, 16),
+				isReady = templatesReady && $(Gmail.selectors.sidebar).length && (threadId.toString().length == 19);
 			log.debug( 'LdEngine.sidebar.isReadyToBeAppended? ' + isReady );
 			return isReady;
 		},
@@ -340,11 +342,11 @@ var LDEngine = {
 			var emailString = $(".msg").text();
 			emailString = emailString.match(/Loading (.+)…/i)[1];
 			$(Gmail.selectors.sidebar).find(Gmail.selectors.userbar).remove();
+
 			LDEngine.sidebar.appendLoadingSpinner();
 			
 			
 			// Send request to server to see whether the user is logged in or not.
-	//QUERY CODE
 			// start timer that will fire if we do not get response back in time when checking the
 			// account status.
 			log.debug( 'Setting "no response" timer for 10 sec.' );
@@ -361,7 +363,7 @@ var LDEngine = {
 				log.ifDebugEnabled( function() {
 					log.debug( 'Account status returned: ' + JSON.stringify( data ));
 				} );
-
+				
 				// if server has responded then we kill the functions waiting for the timer to end
 
 				log.debug( 'Clearing no response timer.' );
@@ -396,7 +398,8 @@ var LDEngine = {
 			
 			// Draw empty sidebar
 			this.append();
-
+			
+			LDEngine.sidebar.senderInfo.render();
 			
 			// If your'e not logged in:
 			// TODO: If you're logged in, do all this:
@@ -424,12 +427,13 @@ var LDEngine = {
 							log.debug( 'Post from /relatedMessages returned, textStatus is ');
 							log.debug( textStatus );
 
+
 							// If no snippets are returned, render the noSnippets view and stop the ajax spinner.
-							if (messageSnippets.length === 0) {
+						/*	if (messageSnippets.length === 0) {
 									$.link.noSnippetsTemplate('.lde-noSnippets');
 									LDEngine.sidebar.stopLoadingSpinner();
 									return;
-							}
+							}*/
 							_.map(messageSnippets, function(messageSnippet) {
 								if( messageSnippet.from && !messageSnippet.from.name )  {messageSnippet.from.name = messageSnippet.from.email;} 
 								
@@ -449,7 +453,6 @@ var LDEngine = {
 
 							// render the sender info
 							log.debug( 'Render senderInfo' );
-							LDEngine.sidebar.senderInfo.render();
 						
 							// Render the message snippets returned from the server
 							log.debug( 'Render message snippets' );
