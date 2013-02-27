@@ -54,7 +54,7 @@ $(function() {
 			// For now, to avoid any weird issues w/ people who already installed
 			// the existing version, hard-code the production host
 			// API_URL = "apps.ldengine.com";
-			API_URL = items.ldengine_api_url || "https://preview.engine.co";
+			API_URL = items.ldengine_api_url || "https://apps.ldengine.com";
 				if( API_URL.indexOf( "http" ) < 0 )
 				 API_URL = "https://" + API_URL;
 
@@ -648,10 +648,16 @@ var LDEngine = {
 				$.link.senderInfoTemplate('.lde-senderInfo', senderInfo);
 			},
 		searchRequest: function(query) {
+
+
+			LDEngine.sidebar.appendLoadingSpinner();
 			
 			$.get(API_URL + "/message/search?query=" + query, {
 			
 			},function(searchSnippets) {
+
+				LDEngine.sidebar.stopLoadingSpinner();
+
 					if (searchSnippets.length === 0) {
 							messageNull = { 
 								from : { name : null },
@@ -660,6 +666,8 @@ var LDEngine = {
 							LDEngine.sidebar.renderSnippets(messageNull);
 							return;
 					};
+
+
 					//Perform operations on Snippets
 					_.map(searchSnippets, function(searchSnippet) {
 							if( !searchSnippet.from.name )	searchSnippet.from.name = searchSnippet.from.email;
