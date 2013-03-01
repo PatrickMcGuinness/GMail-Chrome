@@ -39,7 +39,7 @@
 
 
 .lde-email-result {
-	padding: 15px 15px 0 10px;
+	padding: 5px 5px 0 5px;
 	height: 90px;
 	color: #666;
 	cursor: pointer;
@@ -73,8 +73,13 @@
  */
 .lde-sender {
 	float: left;
-	font-size: 90%;
+	font-size: 75%;
 	font-weight: bold;
+}
+
+.lde-serviceIcon {
+	float: left;
+	margin-right: 10px;
 }
 
 /**
@@ -83,6 +88,7 @@
 .lde-date {
 	font-size: 80%;
 	float:right;
+	margin-right: 25px;
 }
 /**
  *	Search styles
@@ -115,13 +121,65 @@ input[type="text"] {
     padding: 5px;
 }
 
-.lde-help {
+.lde-links-account {
 	background-color: #ccc;
 	font-size: 10px;
 	width: 92%;
-	text-align: right;
+	text-align: left;
 	padding-bottom: 5px;
-	margin-left: 170px;
+	margin-left: 10px;
+	text-decoration: none;
+	color: #349C00;
+	opacity: 0.8;
+}
+
+.lde-links-account:hover {
+	color: #4CE600;
+}
+
+.lde-links-mailto {
+	background-color: #ccc;
+	font-size: 10px;
+	width: 92%;
+	padding-bottom: 5px;
+	margin-left: 0px;
+	text-decoration: none;
+	color: #349C00;
+	opacity: 0.8;
+}
+
+.lde-links-mailto:hover {
+	color: #4CE600;
+}
+
+.lde-links-faq {
+	background-color: #ccc;
+	font-size: 10px;
+	width: 92%;
+	padding-bottom: 5px;
+	margin-left: 0px;
+	text-decoration: none;
+	color: #349C00;
+	opacity: 0.8;
+}
+
+.lde-links-faq:hover {
+	color: #4CE600;
+}
+
+.lde-links-store {
+	background-color: #ccc;
+	font-size: 10px;
+	width: 92%;
+	padding-bottom: 5px;
+	margin-left: 0px;
+	text-decoration: none;
+	color: #349C00;
+	opacity: 0.8;
+}
+
+.lde-links-store:hover {
+	color: #4CE600;
 }
 
 .lde-search-info {
@@ -130,6 +188,7 @@ input[type="text"] {
 	padding-bottom: 10px;
 	font-size: 14px;
 	font-style: italic;
+	margin-right: 25px;
 	height: 20px;
 }
 
@@ -137,9 +196,9 @@ input[type="text"] {
  * Text contained within the email body.
  */
 .lde-text {
+	margin-top: -15px;
 	font-size: 80%;
-	padding-top: 10px;
-	word-break: break-all;
+	word-break: hyphenate;
 }
 
 /**
@@ -249,7 +308,7 @@ input[type="text"] {
 	z-index: 1001;
 	right:285px;
 	top: 100px;
-	background-color: #CCF59F
+	background-color:  #B0E57C; 
 }
 
 .lde-popup-subject {
@@ -394,8 +453,9 @@ input[type="text"] {
 	width: 32px;
 	height: 32px;
 	margin-top: -16px; /* Half the height */
-	margin-left: -16px; /* Half the width */	
+	margin-left: -16px; /* Half the width */
 	background-image:url('chrome-extension://__MSG_@@extension_id__/ajax-loader.gif');
+	background-repeat: no-repeat;
 }
 
 .lde-popup-close-button {

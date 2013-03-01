@@ -1,6 +1,6 @@
 {
   "name": "LD Engine",
-  "version": "13.2.12",
+  "version": "13.2.27",
   "description": "Imagine a world where you didn't hate your email.",
   "permissions": [
   ],
@@ -17,13 +17,13 @@
     }
   ],
   "permissions": [
-    "http://localhost/",
     "http://apps.ldengine.com/",
     "https://apps.ldengine.com/",
-    "http://198.101.252.118:3000/",
+    "http://preview.engine.co/",
+    "https://preview.engine.co/",
+    "http://apps.engine.co/",
+    "https://apps.engine.co/",
     "http://127.0.0.1:3000/",
-    "http://198.101.252.118:3001/",
-    "http://sailsjs.com:1339/",
     "storage"
   ],
   "web_accessible_resources": [
@@ -40,7 +40,10 @@
     "close_message.gif",
     "image_anonymousLarge@2x.png",
     "logo_engine@2x.png",
-	"search_glass.png"
+	"search_glass.png",
+	"gmail.png",
+	"facebook.png",
+	"Twitter.png"
   ],
   "options_page": "options.html"
 }
