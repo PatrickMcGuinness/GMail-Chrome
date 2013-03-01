@@ -206,7 +206,7 @@ input[type="text"] {
  */
 .lde-noSnippets-message {
 	color: #8A8A8A;
-	margin: 250px auto 0;
+	margin: 20px 50px auto auto;
 	font-size: 1.1em;
 	text-align: center;
 	width: 175px;

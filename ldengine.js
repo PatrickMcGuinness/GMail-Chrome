@@ -428,11 +428,11 @@ var LDEngine = {
 
 
 							// If no snippets are returned, render the noSnippets view and stop the ajax spinner.
-						/*	if (messageSnippets.length === 0) {
+							if (messageSnippets.length === 0) {
 									$.link.noSnippetsTemplate('.lde-noSnippets');
 									LDEngine.sidebar.stopLoadingSpinner();
-									return;
-							}*/
+									
+							}
 							_.map(messageSnippets, function(messageSnippet) {
 								if( messageSnippet.from && !messageSnippet.from.name )  {messageSnippet.from.name = messageSnippet.from.email;} 
 								
