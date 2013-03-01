@@ -353,34 +353,50 @@ var LDEngine = {
 					log.debug( '"no response" timer fired!' );
 					LDEngine.sidebar.stopLoadingSpinner();
 					LDEngine.sidebar.appendNoResponse();
-				}, 10000);
+				}, 10000),
+				numRequest = 1, updateInterval, pollTimeout;
 
 			log.debug( 'Getting account status from: ' + API_URL + "/account/status for email string: " + emailString );
-			$.get(API_URL + "/account/status", {
-				email: emailString
-			},function(data) {
-				log.ifDebugEnabled( function() {
-					log.debug( 'Account status returned: ' + data );
-				} );
-				
-				// if server has responded then we kill the functions waiting for the timer to end
+			(function loginXHR() {
+				$.get(API_URL + "/account/status", {
+					email: emailString
+				},function(data) {
+					log.ifDebugEnabled( function() {
+						log.debug( 'Account status returned: ' + data );
+					} );
+					
+					// if server has responded then we kill the functions waiting for the timer to end
 
-				log.debug( 'Clearing no response timer.' );
-				clearTimeout(noResponse);
-				
-				LDEngine.sidebar.accountStatus = data;
-				// Render the appropriate UI depending if you have the data
-				if (LDEngine.sidebar.accountStatus.status !== 'linked') {
-					log.debug( 'Rendering Linked UI' );
-					LDEngine.sidebar.append();
-					$.link.unauthTemplate($('.lde-unauthenticated'), LDEngine.sidebar.accountStatus.AuthUrl);
-					LDEngine.sidebar.stopLoadingSpinner();
-				} else {
-					log.debug( 'Rendering default UI' );
-					LDEngine.sidebar.renderUI();
-				}
+					log.debug( 'Clearing no response timer.' );
+					clearTimeout(noResponse);
 
-			});
+					numRequest++;
+					if (numRequest > 120 ) {
+						clearInterval(updateInterval);
+					}
+					LDEngine.sidebar.accountStatus = data;
+					// Render the appropriate UI depending if you have the data
+					if (LDEngine.sidebar.accountStatus.status !== 'linked') {
+						log.debug( 'Rendering Linked UI' );
+						LDEngine.sidebar.append();
+						$.link.unauthTemplate($('.lde-unauthenticated'), LDEngine.sidebar.accountStatus.AuthUrl);
+						LDEngine.sidebar.stopLoadingSpinner();
+						$('.lde-unauth-button').click( function () {
+							updateInterval = 
+									setInterval( 
+										function() {
+											loginXHR();
+										}, 1000);
+						});
+					} 
+					else {
+						clearInterval(updateInterval);
+						log.debug( 'Rendering default UI' );
+						LDEngine.sidebar.renderUI();
+					}
+
+				});
+			})()
 		},
 
 		// set the height dynamically of the sidebar with JS. CSS will be used for the container with
@@ -397,9 +413,26 @@ var LDEngine = {
 			
 			// Draw empty sidebar
 			this.append();
-			
+			// Draw Search Box	
 			LDEngine.sidebar.senderInfo.render();
+
+			LDEngine.sidebar.appendLoadingSpinner();
 			
+			//bad behavior stopper for enter key
+			$('.lde-search-box').keypress(function(e){
+				if ( e.which == 13 ) e.preventDefault();
+			});
+			//new behaviors added
+			$('.lde-search-box').keyup(function(event) {
+				if (event.keyCode == 13) {
+					$('.lde-mag-glass').click();
+				}
+			});
+			// Bind click events to search bar and some handling to prevent enter key bad behavior
+			$('.lde-mag-glass').click(function() {
+				LDEngine.sidebar.senderInfo.searchRequest(document.getElementById('search_field').field.value);	
+			});
+
 			// If your'e not logged in:
 			// TODO: If you're logged in, do all this:
 			// Draw loading spinner
@@ -412,7 +445,6 @@ var LDEngine = {
 			Gmail.message.scrape($el, function(err, messageApiObj) {
 			
 			// Send the scrapped message to the server
-					
 					//make up the thread ID
 					var currentUrl = document.location.href;
 					var threadId;
@@ -450,33 +482,18 @@ var LDEngine = {
 							log.debug( 'Stop the loading spinner.' );
 							LDEngine.sidebar.stopLoadingSpinner();
 
-							// render the sender info
-							log.debug( 'Render senderInfo' );
-						
 							// Render the message snippets returned from the server
 							log.debug( 'Render message snippets' );
 							LDEngine.sidebar.renderSnippets(messageSnippets);
 						
-							// Bind click events to search bar and some handling to prevent enter key bad behavior
-							$('.lde-mag-glass').click(function() {
-								LDEngine.sidebar.senderInfo.searchRequest(document.getElementById('search_field').field.value);	
-							});
-							//bad behavior stopper for enter key
-							$('.lde-search-box').keypress(function(e){ 
-								if ( e.which == 13 ) e.preventDefault();
-							});
-							//new behaviors added
-							$('.lde-search-box').keyup(function(event) {
-								if (event.keyCode == 13) {
-									$('.lde-mag-glass').click();
-								}
-							});
+
 
 							// fixed to prevent Google from capturing out scroll event
 							$('.lde-related-emails').bind('mousewheel', function(e, delta) {
 								e.stopPropagation();
 								e.stopImmediatePropagation();
 							});
+							console.log(" END OF THE LINE");
 
 				//		});			
 				//	});
@@ -656,12 +673,16 @@ var LDEngine = {
 				LDEngine.sidebar.stopLoadingSpinner();
 
 					if (searchSnippets.length === 0) {
+						/*
 							messageNull = { 
 								from : { name : null },
 								cssFlag: 1,
 								snippet : "Nothing related was found, try again?" };
 							LDEngine.sidebar.renderSnippets(messageNull);
-							return;
+							return;*/
+
+						$.link.noSnippetsTemplate('.lde-noSnippets');
+						LDEngine.sidebar.stopLoadingSpinner();
 					};
 
 
